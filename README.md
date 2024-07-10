@@ -1,38 +1,37 @@
 # PacMan Assembly RISC-V
 
-## Descrição
-Este projeto implementa um jogo similar ao PacMan utilizando a linguagem de programação Assembly para a arquitetura RISC-V. O objetivo é demonstrar a capacidade de desenvolver um jogo clássico em uma linguagem de baixo nível, explorando os recursos da arquitetura RISC-V.
+## Description
+This project implements a game similar to PacMan using the Assembly programming language for the RISC-V architecture. The goal is to demonstrate the ability to develop a classic game in a low-level language, exploring the features of the RISC-V architecture.
 
-## Funcionalidades
-- Interface gráfica (Bitmap Display, 320×240, 8 bits/pixel);
-- Interface com teclado (Keyboard and Display MMIO simulator);
-- Interface de áudio MIDI (ecalls 31, 32, 33);
-- 2 fases com layouts diferentes;
-- Animação e movimentação do personagem;
-- Colisão com as paredes e com os inimigos (perda de vida);
-- Implementação das bolinhas dispostas ao longo da fase e condição de vitória ao coletar todas;
-- Implementação dos 4 inimigos, com comportamentos distintos;
-- Mecânica de ataque do personagem e mudança do comportamento dos inimigos ao coletar bolas especiais;
-- HUD (heads-up display) com informações de score, fase e score máximo;
-- Música e efeitos sonoros
+## Features
+- Graphical interface (Bitmap Display, 320×240, 8 bits/pixel);
+- Keyboard interface (Keyboard and Display MMIO simulator);
+- MIDI audio interface (ecalls 31, 32, 33);
+- 2 levels with different layouts;
+- Character animation and movement;
+- Collision with walls and enemies (loss of life);
+- Implementation of pellets scattered throughout the level and victory condition upon collecting all of them;
+- Implementation of 4 enemies, each with distinct behaviors;
+- Character attack mechanics and change in enemy behavior upon collecting special pellets;
+- HUD (heads-up display) with information on score, level, and high score;
+- Music and sound effects
 
-## Pré-requisitos
-Para executar o jogo, é necessário:
-- Um simulador ou emulador de CPU RISC-V compatível. (Recomenda-se o [FPGARS](https://leoriether.github.io/FPGRARS/))
-- Ambiente de desenvolvimento Assembly RISC-V configurado.
+## Prerequisites
+To run the game, you need:
+- A compatible RISC-V CPU simulator or emulator. (FPGARS is recommended: [FPGARS](https://leoriether.github.io/FPGRARS/))
+- A configured RISC-V Assembly development environment.
 
+## Contribution
+Contributions are welcome! Feel free to open issues to report bugs, suggest improvements, or make pull requests.
 
-## Contribuição
-Contribuições são bem-vindas! Sinta-se à vontade para abrir issues para reportar bugs, sugerir melhorias ou realizar pull requests.
+## License
+This project is licensed under the [MIT License](https://opensource.org/licenses/MIT) - see the [LICENSE](LICENSE) file for more details.
 
-## Licença
-Este projeto está licenciado sob a [Licença MIT](https://opensource.org/licenses/MIT) - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
-## Autores
+## Authors
 - Élvis Miranda (@neatzzy)
 - Gustavo Alves (@gusfring41)
 - Pedro Marcinoni (@Liferoijrm)
 
 ---
 
-Divirta-se jogando PacMan em Assembly RISC-V! 🎮
+Have fun playing PacMan in RISC-V Assembly! 🎮
