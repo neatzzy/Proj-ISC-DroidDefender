@@ -18,7 +18,7 @@ This project implements a game similar to PacMan using the Assembly programming 
 
 ## Prerequisites
 To run the game, you need:
-- A compatible RISC-V CPU simulator or emulator. (FPGARS is recommended: [FPGARS](https://leoriether.github.io/FPGRARS/))
+- A compatible RISC-V CPU simulator or emulator. ([FPGARS](https://leoriether.github.io/FPGRARS/) is recommended)
 - A configured RISC-V Assembly development environment.
 
 ## Contribution
