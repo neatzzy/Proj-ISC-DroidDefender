@@ -1,6 +1,6 @@
 .section .data
 mapa:
-    .byte 30,33
+.byte 30,33
     #0 = vazio      1 = parede      2 = ponto       3 = pilula de poder     4 = portal      5 = porta do spawn dos aliens
     .byte 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     .byte 0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0
