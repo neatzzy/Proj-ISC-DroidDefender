@@ -89,10 +89,10 @@ DELETE:	la s3,Robozinho1preto	# carrega a imagem que vai sobrepor o robozinho co
 	
 DELLOOP:beq s1,s2,ENTER2	# se s1 atingir o fim da linha de pixels, quebre linha
 	lw t0,0(s3)
-	sw t0,0(s1)		# escreve a word (4 pixels pretos) na mem�ria VGA
-	addi s1,s1,4		# soma 4 ao endere�o s1
-	addi s3,s3,4		# soma 4 ao endere�o s3
-	j DELLOOP		# volta a verificar a condi�ao do loop
+	sw t0,0(s1)		# escreve a word (4 pixels pretos) na memória VGA
+	addi s1,s1,4		# soma 4 ao endereço s1
+	addi s3,s3,4		# soma 4 ao endereço s3
+	j DELLOOP		# volta a verificar a condiçao do loop
 	
 ENTER2:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 	addi s2,s2,320		# s2 pula para o pixel final da linha de baixo
