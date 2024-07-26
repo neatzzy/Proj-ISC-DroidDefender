@@ -1,6 +1,7 @@
 .data
 .include "../DATA/mapa1.data"
 .include "../DATA/Robozinho1.data"
+.include "../DATA/Robozinho1preto.data"
 
 .text
 
@@ -68,23 +69,27 @@ MAINL:  li t2,0xFF200000	# carrega o endereço de controle do KDMMIO ("teclado")
 	
 # Printa preto em cima da posição do personagem (apaga o personagem anterior)
 	
-DELETE:	li t0,0x00000000	# carrega uma word de 4 pixels pretos
+DELETE:	la s3,Robozinho1preto	# carrega a imagem que vai sobrepor o robozinho com pixels pretos
+	addi s3, s3, 8		# s3 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
+
 	li t1,0	
-	li t2,16		#reinicia o contador para 17 quebras de linha
+	li t2,16		# reinicia o contador para 17 quebras de linha
 	
 	addi s1,s1,-1280
 	addi s1,s1,-1280
 	addi s1,s1,-1280
-	addi s1,s1,-1280	# volta s1 17 lihas (pixel inicial da primeira linha) 
+	addi s1,s1,-1280	# volta s1 17 linhas (pixel inicial da primeira linha) 
 	
 	addi s2,s2,-1280
 	addi s2,s2,-1280
 	addi s2,s2,-1280
-	addi s2,s2,-1280	# volta s2 17 lihas (pixel final da primeira linha)
+	addi s2,s2,-1280	# volta s2 17 linhas (pixel final da primeira linha)
 	
 DELLOOP:beq s1,s2,ENTER2	# se s1 atingir o fim da linha de pixels, quebre linha
+	lw t0,0(s3)
 	sw t0,0(s1)		# escreve a word (4 pixels pretos) na memória VGA
 	addi s1,s1,4		# soma 4 ao endereço s1
+	addi s3,s3,4		# soma 4 ao endereço s3
 	j DELLOOP		# volta a verificar a condiçao do loop
 	
 ENTER2:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
@@ -99,7 +104,7 @@ VERIFY: li t1,97		# carrega 97 (valor hex de "a") para t1
   	beq s6,t1,MOVLFT	# se t0 for igual a 97 (valor hex de "a"), vá para MOVLFT
   	
   	li t1,119		# carrega 119 (valor hex de "w") para t1
-  	beq s6,t1,MOVUP	# se t0 for igual a 119 (valor hex de "w"), vá para MOVUP
+  	beq s6,t1,MOVUP	        # se t0 for igual a 119 (valor hex de "w"), vá para MOVUP
   	
   	li t1,115		# carrega 115 (valor hex de "s") para t1
   	beq s6,t1,MOVDWN	# se t0 for igual a 115 (valor hex de "s"), vá para MOVDWN
@@ -112,12 +117,12 @@ VERIFY: li t1,97		# carrega 97 (valor hex de "a") para t1
 MOVRGHT:addi s1,s1,-1280
 	addi s1,s1,-1280
 	addi s1,s1,-1280
-	addi s1,s1,-1276	# volta s1 17 lihas e vai 4 pixels pra frente (pixel inicial + 4) 
+	addi s1,s1,-1276	# volta s1 17 linhas e vai 4 pixels pra frente (pixel inicial + 4) 
 	
 	addi s2,s2,-1280
 	addi s2,s2,-1280
 	addi s2,s2,-1280
-	addi s2,s2,-1276	# volta s2 17 lihas e vai 4 pixels pra frente (pixel final + 4)
+	addi s2,s2,-1276	# volta s2 17 linhas e vai 4 pixels pra frente (pixel final + 4)
 	
 	li t1,0
 	li t2,16		# reinicia contador para 17 quebras de linha
@@ -142,12 +147,12 @@ ENTER3:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 MOVDWN: addi s1,s1,-960
 	addi s1,s1,-960
 	addi s1,s1,-960
-	addi s1,s1,-960		# volta s1 13 lihas (pixel inicial 4 linhas abaixo) 
+	addi s1,s1,-960		# volta s1 13 linhas (pixel inicial 4 linhas abaixo) 
 	
 	addi s2,s2,-960
 	addi s2,s2,-960
 	addi s2,s2,-960
-	addi s2,s2,-960		# volta s2 13 lihas (pixel final 4 linhas abaixo)
+	addi s2,s2,-960		# volta s2 13 linhas (pixel final 4 linhas abaixo)
 	
 	li t1,0
 	li t2,16		# reinicia contador para 17 quebras de linha
@@ -172,12 +177,12 @@ ENTER4:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 MOVUP: addi s1,s1,-1600
 	addi s1,s1,-1600
 	addi s1,s1,-1600
-	addi s1,s1,-1600	# volta s1 21 lihas (pixel inicial 4 linhas acima) 
+	addi s1,s1,-1600	# volta s1 21 linhas (pixel inicial 4 linhas acima) 
 	
 	addi s2,s2,-1600
 	addi s2,s2,-1600
 	addi s2,s2,-1600
-	addi s2,s2,-1600	# volta s2 21 lihas (pixel final 4 linhas acima)
+	addi s2,s2,-1600	# volta s2 21 linhas (pixel final 4 linhas acima)
 	
 	li t1,0
 	li t2,16		# reinicia contador para 17 quebras de linha
@@ -202,12 +207,12 @@ ENTER5:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 MOVLFT: addi s1,s1,-1280
 	addi s1,s1,-1280
 	addi s1,s1,-1280
-	addi s1,s1,-1284	# volta s1 17 lihas e vai 4 pixels pra esquerda (pixel inicial - 4) 
+	addi s1,s1,-1284	# volta s1 17 linhas e vai 4 pixels pra esquerda (pixel inicial - 4) 
 	
 	addi s2,s2,-1280
 	addi s2,s2,-1280
 	addi s2,s2,-1280
-	addi s2,s2,-1284	# volta s2 17 lihas e vai 4 pixels pra esquerda (pixel final - 4) 
+	addi s2,s2,-1284	# volta s2 17 linhas e vai 4 pixels pra esquerda (pixel final - 4) 
 	
 	li t1,0
 	li t2,16		# reinicia contador para 17 quebras de linha
