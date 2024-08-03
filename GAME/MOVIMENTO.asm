@@ -1,16 +1,16 @@
 #########################################################################
 #									#
-#	Universidade de Brasilia - Instituto de Ciencias Exatas		#						
-#		  Departamento de Ciencia da Computacao  		#			
+#	Universidade de Brasilia - Instituto de Ciencias Exatas		#
+#		  Departamento de Ciencia da Computacao  		#
 #									#
 #	     Introducao aos Sistemas Computacionais - 2024.1		#
 #		    Professor: Marcus Vinicius Lamar			#
 #									#
 #	 Alunos: Elvis Miranda, Gustavo Alves e Pedro Marcinoni		#
 #								        #
-#		       INSIRA O NOME DO JOGO AQUI		     	#
-#									#
-#########################################################################
+#		       	    DROID DEFENDER:		     		#
+#			 Earth's Last Sentinel				#
+######################################################################### 
 
 .data
 
