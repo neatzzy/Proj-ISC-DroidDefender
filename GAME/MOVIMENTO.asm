@@ -1,26 +1,41 @@
+#########################################################################
+#									#
+#	Universidade de Brasilia - Instituto de Ciencias Exatas		#
+#		  Departamento de Ciencia da Computacao  		#
+#									#
+#	     Introducao aos Sistemas Computacionais - 2024.1		#
+#		    Professor: Marcus Vinicius Lamar			#
+#									#
+#	 Alunos: Elvis Miranda, Gustavo Alves e Pedro Marcinoni		#
+#								        #
+#		       	    DROID DEFENDER:		     		#
+#			 Earth's Last Sentinel				#
+#########################################################################
+
 .data
+
 .include "../DATA/mapa1.data"
 .include "../DATA/Robozinho1.data"
+.include "../DATA/Robozinho2.data"
 .include "../DATA/Robozinho1preto.data"
-.include "../DATA/mapa1matriz.data"
 
 .text
 
-# FunÁıes dos registradores: s0 (carrega o endereÁo do mapa1 e do Robozinho), s1 (pixel inicial para preenchimento de imagem), s2 (pixel final para preenchimento de imagem)
-
+# Fun√ß√µes dos registradores: s0 (carrega o endere√ßo do mapa1 e do Robozinho), s1 (pixel inicial para preenchimento de imagem), s2 (pixel final para preenchimento de imagem)
+	
 # Carrega a imagem1 (mapa1)
 	
 	li s1,0xFF000000	# s1 = endereco inicial da Memoria VGA - Frame 0
 	li s2,0xFF012C00	# s2 = endereco final da Memoria VGA - Frame 0
-	la s0,mapa1		# s0 = endereÁo dos dados do mapa 1
-	addi s0,s0,8		# s0 = endereÁo do primeiro pixel da imagem (depois das informaÁıes de nlin ncol)
+	la s0,../DATA/mapa1	# s0 = endere√ßo dos dados do mapa 1
+	addi s0,s0,8		# s0 = endere√ßo do primeiro pixel da imagem (depois das informa√ß√µes de nlin ncol)
 	
-LOOP1: 	beq s1,s2,IMG2		# se s1 = ˙ltimo endereÁo da Memoria VGA, saia do loop
-	lw t0,0(s0)		# le uma word do endereÁo s0 (le 4 pixels da imagem)
-	sw t0,0(s1)		# escreve a word na memÛria VGA no endereÁo s1 (desenha 4 pixels na tela do Bitmap Display)
-	addi s1,s1,4		# soma 4 ao endereÁo s1 
-	addi s0,s0,4		# soma 4 ao endereÁo s0
-	j LOOP1			# volta a verificar a condiÁao do loop
+LOOP1: 	beq s1,s2,IMG2		# se s1 = √∫ltimo endere√ßo da Memoria VGA, saia do loop
+	lw t0,0(s0)		# le uma word do endere√ßo s0 (le 4 pixels da imagem)
+	sw t0,0(s1)		# escreve a word na mem√≥ria VGA no endere√ßo s1 (desenha 4 pixels na tela do Bitmap Display)
+	addi s1,s1,4		# soma 4 ao endere√ßo s1 
+	addi s0,s0,4		# soma 4 ao endere√ßo s0
+	j LOOP1			# volta a verificar a condi√ßao do loop
 
 # Carrega a imagem2 (Robozinho1 - imagem 16x16)
 
@@ -29,15 +44,15 @@ IMG2:	li t1,0
 
 	li s1,0xFF00A098	# s1 = endereco inicial da primeira linha do Robozinho - Frame 0
 	li s2,0xFF00A0A8	# s2 = endereco final da primeira linha do Robozinho (inicial +16) - Frame 0
-	la s0,Robozinho1	# s0 = endereÁo dos dados do Robozinho1
-	addi s0,s0,8		# s0 = endereÁo do primeiro pixel da imagem (depois das informaÁıes de nlin ncol)
+	la s0,../DATA/Robozinho1# s0 = endere√ßo dos dados do Robozinho1 (boca fechada)
+	addi s0,s0,8		# s0 = endere√ßo do primeiro pixel da imagem (depois das informa√ß√µes de nlin ncol)
 	
 LOOP2: 	beq s1,s2,ENTER		# se s1 atingir o fim da linha de pixels, quebre linha
-	lw t0,0(s0)		# le uma word do endereÁo s0 (le 4 pixels da imagem)
-	sw t0,0(s1)		# escreve a word na memÛria VGA no endereÁo s1 (desenha 4 pixels na tela do Bitmap Display)
-	addi s1,s1,4		# soma 4 ao endereÁo s1
-	addi s0,s0,4		# soma 4 ao endereÁo s0
-	j LOOP2			# volta a verificar a condiÁao do loop
+	lw t0,0(s0)		# le uma word do endere√ßo s0 (le 4 pixels da imagem)
+	sw t0,0(s1)		# escreve a word na mem√≥ria VGA no endere√ßo s1 (desenha 4 pixels na tela do Bitmap Display)
+	addi s1,s1,4		# soma 4 ao endere√ßo s1
+	addi s0,s0,4		# soma 4 ao endere√ßo s0
+	j LOOP2			# volta a verificar a condi√ßao do loop
 	
 ENTER:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 	addi s2,s2,320		# s2 pula para o pixel final da linha de baixo
@@ -45,33 +60,35 @@ ENTER:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 	beq t1,t2,MAINL		# termina o carregamento da imagem se 17 quebras de linha ocorrerem
 	j LOOP2			# pula para loop 2
 
-# Loop principal do jogo (verifica se ha teclas de movimentaÁ„o pressionadas)
+# Loop principal do jogo (verifica se ha teclas de movimenta√ß√£o pressionadas)
 
-MAINL:  li t2,0xFF200000	# carrega o endereÁo de controle do KDMMIO ("teclado")
-	lw t0,0(t2)		# le uma word a partir do endereÁo de controle do KDMMIO
-	andi t0,t0,0x0001	# mascara todos os bits de t0 com exceÁao do bit menos significativo
-   	beq t0,zero,FIM   	# se o BMS de t0 for 0 (n„o h· tecla pressionada), pule para FIM
+MAINL:  li t2,0xFF200000	# carrega o endere√ßo de controle do KDMMIO ("teclado")
+	lw t0,0(t2)		# le uma word a partir do endere√ßo de controle do KDMMIO
+	andi t0,t0,0x0001	# mascara todos os bits de t0 com exce√ßao do bit menos significativo
+   	beq t0,zero,FIM   	# se o BMS de t0 for 0 (n√£o h√° tecla pressionada), pule para FIM
    	
+  	addi t4,t4,1		# incrementa o contador de estados do Robozinho (se t4 for par -> Robozinho1; se t4 for impar -> Robozinho2)
+  	
   	lw s6,4(t2)		# le o valor da tecla pressionada
   	
   	li t1,97		# carrega 97 (valor hex de "a") para t1
-  	beq s6,t1,DELETE	# se t0 for igual a 97 (valor hex de "a"), v· para DELETE
+  	beq s6,t1,DELETE	# se t0 for igual a 97 (valor hex de "a"), v√° para DELETE
   	
   	li t1,119		# carrega 119 (valor hex de "w") para t1
-  	beq s6,t1,DELETE	# se t0 for igual a 119 (valor hex de "w"), v· para DELETE
+  	beq s6,t1,DELETE	# se t0 for igual a 119 (valor hex de "w"), v√° para DELETE
   	
   	li t1,115		# carrega 115 (valor hex de "s") para t1
-  	beq s6,t1,DELETE	# se t0 for igual a 115 (valor hex de "s"), v· para DELETE
+  	beq s6,t1,DELETE	# se t0 for igual a 115 (valor hex de "s"), v√° para DELETE
   	
   	li t1,100  		# carrega 100 (valor hex de "d") para t1
-	beq s6,t1,DELETE	# se t0 for igual a 100 (valor hex de "d"), v· para DELETE
+	beq s6,t1,DELETE	# se t0 for igual a 100 (valor hex de "d"), v√° para DELETE
 	
-	j FIM			# se outra tecla for pressionada, v· para FIM
+	j FIM			# se outra tecla for pressionada, v√° para FIM
 	
-# Printa preto em cima da posiÁ„o do personagem (apaga o personagem anterior)
+# Printa preto em cima da posi√ß√£o do personagem (apaga o personagem anterior)
 	
-DELETE:	la s3,Robozinho1preto	# carrega a imagem que vai sobrepor o robozinho com pixels pretos
-	addi s3, s3, 8		# s3 = endereÁo do primeiro pixel da imagem (depois das informaÁıes de nlin ncol)
+DELETE:	la s3,../DATA/Robozinho1preto	# carrega a imagem que vai sobrepor o robozinho com pixels pretos
+	addi s3,s3,8		# s3 = endere√ßo do primeiro pixel da imagem (depois das informa√ß√µes de nlin ncol)
 
 	li t1,0	
 	li t2,16		# reinicia o contador para 17 quebras de linha
@@ -88,10 +105,10 @@ DELETE:	la s3,Robozinho1preto	# carrega a imagem que vai sobrepor o robozinho co
 	
 DELLOOP:beq s1,s2,ENTER2	# se s1 atingir o fim da linha de pixels, quebre linha
 	lw t0,0(s3)
-	sw t0,0(s1)		# escreve a word (4 pixels pretos) na memÛria VGA
-	addi s1,s1,4		# soma 4 ao endereÁo s1
-	addi s3,s3,4		# soma 4 ao endereÁo s3
-	j DELLOOP		# volta a verificar a condiÁao do loop
+	sw t0,0(s1)		# escreve a word (4 pixels pretos) na mem√≥ria VGA
+	addi s1,s1,4		# soma 4 ao endere√ßo s1
+	addi s3,s3,4		# soma 4 ao endere√ßo s3
+	j DELLOOP		# volta a verificar a condi√ßao do loop
 	
 ENTER2:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 	addi s2,s2,320		# s2 pula para o pixel final da linha de baixo
@@ -102,16 +119,16 @@ ENTER2:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 # Verifica qual a tecla pressionada para movimentar o Robozinho
 	
 VERIFY: li t1,97		# carrega 97 (valor hex de "a") para t1
-  	beq s6,t1,MOVLFT	# se t0 for igual a 97 (valor hex de "a"), v· para MOVLFT
+  	beq s6,t1,MOVLFT	# se t0 for igual a 97 (valor hex de "a"), v√° para MOVLFT
   	
   	li t1,119		# carrega 119 (valor hex de "w") para t1
-  	beq s6,t1,MOVUP	        # se t0 for igual a 119 (valor hex de "w"), v· para MOVUP
+  	beq s6,t1,MOVUP	        # se t0 for igual a 119 (valor hex de "w"), v√° para MOVUP
   	
   	li t1,115		# carrega 115 (valor hex de "s") para t1
-  	beq s6,t1,MOVDWN	# se t0 for igual a 115 (valor hex de "s"), v· para MOVDWN
+  	beq s6,t1,MOVDWN	# se t0 for igual a 115 (valor hex de "s"), v√° para MOVDWN
   	
   	li t1,100  		# carrega 100 (valor hex de "d") para t1
-	beq s6,t1,MOVRGHT	# se t0 for igual a 100 (valor hex de "d"), v· para MOVRGHT
+	beq s6,t1,MOVRGHT	# se t0 for igual a 100 (valor hex de "d"), v√° para MOVRGHT
 		
 # Printa o personagem 4 pixels para frente (move o Robozinho para a direita)	
 	
@@ -127,15 +144,24 @@ MOVRGHT:addi s1,s1,-1280
 	
 	li t1,0
 	li t2,16		# reinicia contador para 17 quebras de linha
-		
-	addi s0,s0,-256		# s0 = endereÁo dos dados do Robozinho1	
+	
+	li t5,2			# t5 = 2 (para verificar a paridade de t4)
+	rem t3,t4,t5		# t3 = resto da divis√£o inteira t4/2
+	beq t3,zero,PAR3	# se t3 = 0, va para PAR3 (se t4 for par, imprime o Robozinho1, se for impar, imprime o Robozinho2)
+	
+	la s0,../DATA/Robozinho2	# s0 = endere√ßo dos dados do Robozinho2 (boca aberta)
+	j NEXT3			# pula para NEXT3
+	
+PAR3:	la s0,../DATA/Robozinho1	# s0 = endere√ßo dos dados do Robozinho1 (boca fechada)
+	
+NEXT3:	addi s0,s0,8		# s0 = endere√ßo do primeiro pixel da imagem (depois das informa√ß√µes de nlin ncol)	
 	
 LOOP3: 	beq s1,s2,ENTER3	# se s1 atingir o fim da linha de pixels, quebre linha
-	lw t0,0(s0)		# le uma word do endereÁo s0 (le 4 pixels da imagem)
-	sw t0,0(s1)		# escreve a word na memÛria VGA no endereÁo s1 (desenha 4 pixels na tela do Bitmap Display)
-	addi s1,s1,4		# soma 4 ao endereÁo s1
-	addi s0,s0,4		# soma 4 ao endereÁo s0
-	j LOOP3			# volta a verificar a condiÁao do loop
+	lw t0,0(s0)		# le uma word do endere√ßo s0 (le 4 pixels da imagem)
+	sw t0,0(s1)		# escreve a word na mem√≥ria VGA no endere√ßo s1 (desenha 4 pixels na tela do Bitmap Display)
+	addi s1,s1,4		# soma 4 ao endere√ßo s1
+	addi s0,s0,4		# soma 4 ao endere√ßo s0
+	j LOOP3			# volta a verificar a condi√ßao do loop
 	
 ENTER3:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 	addi s2,s2,320		# s2 pula para o pixel final da linha de baixo
@@ -158,14 +184,23 @@ MOVDWN: addi s1,s1,-960
 	li t1,0
 	li t2,16		# reinicia contador para 17 quebras de linha
 		
-	addi s0,s0,-256		# s0 = endereÁo dos dados do Robozinho1	
+	li t5,2			# t5 = 2 (para verificar a paridade de t4)
+	rem t3,t4,t5		# t3 = resto da divis√£o inteira t4/2
+	beq t3,zero,PAR4	# se t3 = 0, va para PAR4 (se t4 for par, imprime o Robozinho1, se for impar, imprime o Robozinho2)
+	
+	la s0,../DATA/Robozinho2	# s0 = endere√ßo dos dados do Robozinho2 (boca aberta)
+	j NEXT4			# pula para NEXT4
+	
+PAR4:	la s0,../DATA/Robozinho1	# s0 = endere√ßo dos dados do Robozinho1 (boca fechada)
+	
+NEXT4:	addi s0,s0,8		# s0 = endere√ßo do primeiro pixel da imagem (depois das informa√ß√µes de nlin ncol)
 	
 LOOP4: 	beq s1,s2,ENTER4	# se s1 atingir o fim da linha de pixels, quebre linha
-	lw t0,0(s0)		# le uma word do endereÁo s0 (le 4 pixels da imagem)
-	sw t0,0(s1)		# escreve a word na memÛria VGA no endereÁo s1 (desenha 4 pixels na tela do Bitmap Display)
-	addi s1,s1,4		# soma 4 ao endereÁo s1
-	addi s0,s0,4		# soma 4 ao endereÁo s0
-	j LOOP4			# volta a verificar a condiÁao do loop
+	lw t0,0(s0)		# le uma word do endere√ßo s0 (le 4 pixels da imagem)
+	sw t0,0(s1)		# escreve a word na mem√≥ria VGA no endere√ßo s1 (desenha 4 pixels na tela do Bitmap Display)
+	addi s1,s1,4		# soma 4 ao endere√ßo s1
+	addi s0,s0,4		# soma 4 ao endere√ßo s0
+	j LOOP4			# volta a verificar a condi√ßao do loop
 	
 ENTER4:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 	addi s2,s2,320		# s2 pula para o pixel final da linha de baixo
@@ -175,7 +210,7 @@ ENTER4:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 
 # Printa o personagem 4 linhas para cima (move o Robozinho para cima)	
 	
-MOVUP: addi s1,s1,-1600
+MOVUP:  addi s1,s1,-1600
 	addi s1,s1,-1600
 	addi s1,s1,-1600
 	addi s1,s1,-1600	# volta s1 21 linhas (pixel inicial 4 linhas acima) 
@@ -188,14 +223,23 @@ MOVUP: addi s1,s1,-1600
 	li t1,0
 	li t2,16		# reinicia contador para 17 quebras de linha
 		
-	addi s0,s0,-256		# s0 = endereÁo dos dados do Robozinho1	
+	li t5,2			# t5 = 2 (para verificar a paridade de t4)
+	rem t3,t4,t5		# t3 = resto da divis√£o inteira t4/2
+	beq t3,zero,PAR5	# se t3 = 0, va para PAR5 (se t4 for par, imprime o Robozinho1, se for impar, imprime o Robozinho2)
+	
+	la s0,../DATA/Robozinho2	# s0 = endere√ßo dos dados do Robozinho2 (boca aberta)
+	j NEXT5			# pula para NEXT5
+	
+PAR5:	la s0,../DATA/Robozinho1	# s0 = endere√ßo dos dados do Robozinho1 (boca fechada)
+	
+NEXT5:	addi s0,s0,8		# s0 = endere√ßo do primeiro pixel da imagem (depois das informa√ß√µes de nlin ncol)	
 	
 LOOP5: 	beq s1,s2,ENTER5	# se s1 atingir o fim da linha de pixels, quebre linha
-	lw t0,0(s0)		# le uma word do endereÁo s0 (le 4 pixels da imagem)
-	sw t0,0(s1)		# escreve a word na memÛria VGA no endereÁo s1 (desenha 4 pixels na tela do Bitmap Display)
-	addi s1,s1,4		# soma 4 ao endereÁo s1
-	addi s0,s0,4		# soma 4 ao endereÁo s0
-	j LOOP5 		# volta a verificar a condiÁao do loop
+	lw t0,0(s0)		# le uma word do endere√ßo s0 (le 4 pixels da imagem)
+	sw t0,0(s1)		# escreve a word na mem√≥ria VGA no endere√ßo s1 (desenha 4 pixels na tela do Bitmap Display)
+	addi s1,s1,4		# soma 4 ao endere√ßo s1
+	addi s0,s0,4		# soma 4 ao endere√ßo s0
+	j LOOP5 		# volta a verificar a condi√ßao do loop
 	
 ENTER5:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 	addi s2,s2,320		# s2 pula para o pixel final da linha de baixo
@@ -218,14 +262,23 @@ MOVLFT: addi s1,s1,-1280
 	li t1,0
 	li t2,16		# reinicia contador para 17 quebras de linha
 		
-	addi s0,s0,-256		# s0 = endereÁo dos dados do Robozinho1	
+	li t5,2			# t5 = 2 (para verificar a paridade de t4)
+	rem t3,t4,t5		# t3 = resto da divis√£o inteira t4/2
+	beq t3,zero,PAR6	# se t3 = 0, va para PAR6 (se t4 for par, imprime o Robozinho1, se for impar, imprime o Robozinho2)
+	
+	la s0,../DATA/Robozinho2	# s0 = endere√ßo dos dados do Robozinho2 (boca aberta)
+	j NEXT6			# pula para NEXT6
+	
+PAR6:	la s0,../DATA/Robozinho1	# s0 = endere√ßo dos dados do Robozinho1 (boca fechada)
+	
+NEXT6:	addi s0,s0,8		# s0 = endere√ßo do primeiro pixel da imagem (depois das informa√ß√µes de nlin ncol)	
 	
 LOOP6: 	beq s1,s2,ENTER6	# se s1 atingir o fim da linha de pixels, quebre linha
-	lw t0,0(s0)		# le uma word do endereÁo s0 (le 4 pixels da imagem)
-	sw t0,0(s1)		# escreve a word na memÛria VGA no endereÁo s1 (desenha 4 pixels na tela do Bitmap Display)
-	addi s1,s1,4		# soma 4 ao endereÁo s1
-	addi s0,s0,4		# soma 4 ao endereÁo s0
-	j LOOP6			# volta a verificar a condiÁao do loop
+	lw t0,0(s0)		# le uma word do endere√ßo s0 (le 4 pixels da imagem)
+	sw t0,0(s1)		# escreve a word na mem√≥ria VGA no endere√ßo s1 (desenha 4 pixels na tela do Bitmap Display)
+	addi s1,s1,4		# soma 4 ao endere√ßo s1
+	addi s0,s0,4		# soma 4 ao endere√ßo s0
+	j LOOP6			# volta a verificar a condi√ßao do loop
 	
 ENTER6:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 	addi s2,s2,320		# s2 pula para o pixel final da linha de baixo
@@ -233,4 +286,8 @@ ENTER6:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 	beq t1,t2,FIM		# termine o carregamento da imagem se 17 quebras de linha ocorrerem
 	j LOOP6			# pula para loop 6
 	
-FIM:	j MAINL			# retorna ao loop principal
+FIM:	li a0,60		
+	li a7,32
+	ecall			# servi√ßo 32 do ecall (sleep - a proxima itera√ßao demora 60 milissegundos para acontecer)
+	
+	j MAINL			# retorna ao loop principal
