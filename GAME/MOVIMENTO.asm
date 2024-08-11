@@ -27,7 +27,7 @@
 	
 	li s1,0xFF000000	# s1 = endereco inicial da Memoria VGA - Frame 0
 	li s2,0xFF012C00	# s2 = endereco final da Memoria VGA - Frame 0
-	la s0,../DATA/mapa1	# s0 = endereço dos dados do mapa 1
+	la s0,mapa1	# s0 = endereço dos dados do mapa 1
 	addi s0,s0,8		# s0 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
 	
 LOOP1: 	beq s1,s2,IMG2		# se s1 = último endereço da Memoria VGA, saia do loop
@@ -44,7 +44,7 @@ IMG2:	li t1,0
 
 	li s1,0xFF00A098	# s1 = endereco inicial da primeira linha do Robozinho - Frame 0
 	li s2,0xFF00A0A8	# s2 = endereco final da primeira linha do Robozinho (inicial +16) - Frame 0
-	la s0,../DATA/Robozinho1# s0 = endereço dos dados do Robozinho1 (boca fechada)
+	la s0,Robozinho1# s0 = endereço dos dados do Robozinho1 (boca fechada)
 	addi s0,s0,8		# s0 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
 	
 LOOP2: 	beq s1,s2,ENTER		# se s1 atingir o fim da linha de pixels, quebre linha
@@ -87,7 +87,7 @@ MAINL:  li t2,0xFF200000	# carrega o endereço de controle do KDMMIO ("teclado")
 	
 # Printa preto em cima da posição do personagem (apaga o personagem anterior)
 	
-DELETE:	la s3,../DATA/Robozinho1preto	# carrega a imagem que vai sobrepor o robozinho com pixels pretos
+DELETE:	la s3,Robozinho1preto	# carrega a imagem que vai sobrepor o robozinho com pixels pretos
 	addi s3,s3,8		# s3 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
 
 	li t1,0	
@@ -149,10 +149,10 @@ MOVRGHT:addi s1,s1,-1280
 	rem t3,t4,t5		# t3 = resto da divisão inteira t4/2
 	beq t3,zero,PAR3	# se t3 = 0, va para PAR3 (se t4 for par, imprime o Robozinho1, se for impar, imprime o Robozinho2)
 	
-	la s0,../DATA/Robozinho2	# s0 = endereço dos dados do Robozinho2 (boca aberta)
+	la s0,Robozinho2	# s0 = endereço dos dados do Robozinho2 (boca aberta)
 	j NEXT3			# pula para NEXT3
 	
-PAR3:	la s0,../DATA/Robozinho1	# s0 = endereço dos dados do Robozinho1 (boca fechada)
+PAR3:	la s0,Robozinho1	# s0 = endereço dos dados do Robozinho1 (boca fechada)
 	
 NEXT3:	addi s0,s0,8		# s0 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)	
 	
@@ -188,10 +188,10 @@ MOVDWN: addi s1,s1,-960
 	rem t3,t4,t5		# t3 = resto da divisão inteira t4/2
 	beq t3,zero,PAR4	# se t3 = 0, va para PAR4 (se t4 for par, imprime o Robozinho1, se for impar, imprime o Robozinho2)
 	
-	la s0,../DATA/Robozinho2	# s0 = endereço dos dados do Robozinho2 (boca aberta)
+	la s0,Robozinho2	# s0 = endereço dos dados do Robozinho2 (boca aberta)
 	j NEXT4			# pula para NEXT4
 	
-PAR4:	la s0,../DATA/Robozinho1	# s0 = endereço dos dados do Robozinho1 (boca fechada)
+PAR4:	la s0,Robozinho1	# s0 = endereço dos dados do Robozinho1 (boca fechada)
 	
 NEXT4:	addi s0,s0,8		# s0 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
 	
@@ -227,10 +227,10 @@ MOVUP:  addi s1,s1,-1600
 	rem t3,t4,t5		# t3 = resto da divisão inteira t4/2
 	beq t3,zero,PAR5	# se t3 = 0, va para PAR5 (se t4 for par, imprime o Robozinho1, se for impar, imprime o Robozinho2)
 	
-	la s0,../DATA/Robozinho2	# s0 = endereço dos dados do Robozinho2 (boca aberta)
+	la s0,Robozinho2	# s0 = endereço dos dados do Robozinho2 (boca aberta)
 	j NEXT5			# pula para NEXT5
 	
-PAR5:	la s0,../DATA/Robozinho1	# s0 = endereço dos dados do Robozinho1 (boca fechada)
+PAR5:	la s0,Robozinho1	# s0 = endereço dos dados do Robozinho1 (boca fechada)
 	
 NEXT5:	addi s0,s0,8		# s0 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)	
 	
@@ -266,10 +266,10 @@ MOVLFT: addi s1,s1,-1280
 	rem t3,t4,t5		# t3 = resto da divisão inteira t4/2
 	beq t3,zero,PAR6	# se t3 = 0, va para PAR6 (se t4 for par, imprime o Robozinho1, se for impar, imprime o Robozinho2)
 	
-	la s0,../DATA/Robozinho2	# s0 = endereço dos dados do Robozinho2 (boca aberta)
+	la s0,Robozinho2	# s0 = endereço dos dados do Robozinho2 (boca aberta)
 	j NEXT6			# pula para NEXT6
 	
-PAR6:	la s0,../DATA/Robozinho1	# s0 = endereço dos dados do Robozinho1 (boca fechada)
+PAR6:	la s0,Robozinho1	# s0 = endereço dos dados do Robozinho1 (boca fechada)
 	
 NEXT6:	addi s0,s0,8		# s0 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)	
 	
