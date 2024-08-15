@@ -93,7 +93,7 @@ IMG6:	li s1,0xFF008558	# s1 = endereco inicial da primeira linha do alien 4 - Fr
 	addi s0,s0,8		# s0 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
 	j PRINT16
 	
-# Carrega a imagem7 (mapa1) no frame 0
+# Carrega a imagem7 (mapa1 - colisao) no frame 1
 	
 IMG7:	li s1,0xFF100000	# s1 = endereco inicial da Memoria VGA - Frame 1
 	li s2,0xFF112C00	# s2 = endereco final da Memoria VGA - Frame 1
