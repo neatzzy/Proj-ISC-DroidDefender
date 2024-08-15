@@ -16,6 +16,7 @@
 .data
 
 .include "mapa1.data"
+.include "mapa1colisao.data"
 .include "Robozinho1.data"
 .include "Robozinho2.data"
 .include "Robozinho1preto.data"
@@ -97,7 +98,7 @@ IMG6:	li s1,0xFF008558	# s1 = endereco inicial da primeira linha do alien 4 - Fr
 	
 IMG7:	li s1,0xFF100000	# s1 = endereco inicial da Memoria VGA - Frame 1
 	li s2,0xFF112C00	# s2 = endereco final da Memoria VGA - Frame 1
-	la s0,mapa1		# s0 = endereço dos dados do mapa 1
+	la s0,mapa1colisao	# s0 = endereço dos dados da colisao do mapa 1
 	mv t3, s0		# t3 = endereço inicial armazenado a fins de comparação
 	addi s0,s0,8		# s0 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
 	
