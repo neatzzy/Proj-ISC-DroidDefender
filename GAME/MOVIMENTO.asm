@@ -352,7 +352,7 @@ VERIFY: addi s3,s3,1		# incrementa o contador de estados do Robozinho (se s3 for
 		
 # Printa o personagem 4 pixels para frente (move o Robozinho para a direita)	
 	
-MOVRGHT:t3, 5116
+MOVRGHT:li t3, 5116
 	sub s1, s1, t3		# volta s1 16 linhas e vai 4 pixels pra frente (pixel inicial + 4) 
 	sub s2, s2, t3		# volta s2 16 linhas e vai 4 pixels pra frente (pixel final + 4)
 	
