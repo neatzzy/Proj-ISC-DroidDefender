@@ -13,6 +13,8 @@
 #									#
 #########################################################################
 
+.include "MACROSv24.s"
+
 .data
 
 .include "mapa1.data"
@@ -25,13 +27,16 @@
 .include "Inimigo3.data"
 .include "Inimigo4.data"
 
+STR: .string "PONTOS: "
+
 .text
 
 # Funções dos registradores: 
-# s0 (carrega o endereço do mapa1 e do Robozinho)
-# s1 (pixel inicial para preenchimento de imagem)
-# s2 (pixel final para preenchimento de imagem)
-# s3 carrega um contador de paridade baseado nos inputs do jogador
+# s0 carrega o endereço do mapa1 e do Robozinho
+# s1 = pixel inicial para preenchimento de imagem
+# s2 = pixel final para preenchimento de imagem
+# s3 carrega um contador de paridade baseado nos inputs do jogador(tick-counter)
+# s4 contador de pontos coletados
 	
 # Carrega a imagem1 (mapa1) no frame 0
 	
@@ -152,6 +157,7 @@ SETUP_MAIN:
 			
 	li s1,0xFF00B4C8	# s1 = endereco inicial da linha diretamente abaixo do Robozinho
 	li s2,0xFF00B4D8	# s2 = endereco final da linha diretamente abaixo do Robozinho (inicial +16)
+	li s4,0			# s4 = 0 (zera o contador de pontos coletados)
 	li s8,0xFF0064C8	# s8 = coordenada inicial do alien vermelho (blinky)
 	#li s9,
 	#li s10, 
@@ -159,7 +165,23 @@ SETUP_MAIN:
 
 # Loop principal do jogo (verifica se ha teclas de movimentação pressionadas)
 
-MAINL:  li t2,0xFF200000	# carrega o endereço de controle do KDMMIO ("teclado")
+MAINL:  li a7,104
+	la a0,STR
+	li a1,0
+        li a2,0
+	li a3,0x00FF
+	li a4,0
+	ecall
+	
+	li a7,101
+	mv a0,s4
+	li a1,60
+        li a2,0
+	li a3,0x00FF
+	li a4,0
+	ecall
+	
+	li t2,0xFF200000	# carrega o endereço de controle do KDMMIO ("teclado")
 	lw t0,0(t2)		# le uma word a partir do endereço de controle do KDMMIO
 	andi t0,t0,0x0001	# mascara todos os bits de t0 com exceçao do bit menos significativo
    	beq t0,zero,FIM   	# se o BMS de t0 for 0 (não há tecla pressionada), pule para FIM
@@ -182,7 +204,7 @@ MAINL:  li t2,0xFF200000	# carrega o endereço de controle do KDMMIO ("teclado")
 	
 # Verifica a colisao do mapa (VLCO, VUCO, VDCO e VRCO carregam 5 pixels de detecção de colisão em cada direção, e VER verifica se algum desses pixels detectou uma colisão adiante)
 
-#	   @7       @8          @9          @10          @11
+#	   @7       @8          @9          @10         @11
 #	@6 #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  @12
 #	   #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  
 #	   #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  
@@ -205,103 +227,103 @@ MAINL:  li t2,0xFF200000	# carrega o endereço de controle do KDMMIO ("teclado")
 
 VLCO:   mv t5,s1		# t5 = s1
 	addi t5,t5,-321		# volta t5 1 linha e 1 pixel (carrega em t5 o endereço do pixel "@1")
-	jal ra, VER		# vá para VER (verifica se o pixel "@1" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@1" detectou uma colisão)
 			
 	addi t5,t5,-1281	# volta t5 4 linhas e 1 pixel (carrega em t5 o endereço do pixel "@2")
-	jal ra, VER		# vá para VER (verifica se o pixel "@2" detectou uma colisão)
+	jal ra, VERC		# vá para VER (verifica se o pixel "@2" detectou uma colisão)
 	
 	li t6,-2241		# t6 = -2241
 	add t5,t5,t6		# volta t5 7 linhas e 1 pixel (carrega em t5 o endereço do pixel "@3")
-	jal ra, VER		# vá para VER (verifica se o pixel "@3" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@3" detectou uma colisão)
 	
 	li t6,-3201		# t6 = -3201
 	add t5,t5,t6		# volta t5 10 linhas e 1 pixel (carrega em t5 o endereço do pixel "@4")
-	jal ra, VER		# vá para VER (verifica se o pixel "@4" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@4" detectou uma colisão)
 	
 	li t6,-4161		# t6 = -5121
 	add t5,t5,t6		# volta t5 13 linhas e 1 pixel (carrega em t5 o endereço do pixel "@5")
-	jal ra, VER		# vá para VER (verifica se o pixel "@5" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@5" detectou uma colisão)
 	
 	li t6,-5121		# t6 = -5121
 	add t5,t5,t6		# volta t5 16 linhas e 1 pixel (carrega em t5 o endereço do pixel "@6")
-	jal ra, VER		# vá para VER (verifica se o pixel "@6" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@6" detectou uma colisão)
 	
-	j DELETE		# se nenhuma colisão foi detectada, vá para DELETE
+	j VLP			# se nenhuma colisão foi detectada, vá para VLP (Verify Left Point)
 	
 # Carrega pixels de colisão acima (@7, @8, @9, @10, @11)
 
 VUCO:	mv t5,s1		# t5 = s1
 	li t6,-5440		# t6 = -5440
 	add t5,t5,t6		# volta t5 17 linhas (carrega em t5 o endereço do pixel "@7")
-	jal ra, VER		# vá para VER (verifica se o pixel "@7" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@7" detectou uma colisão)
 	
 	li t6,-5437		# t6 = -5437
 	add t5,t5,t6		# t5 volta 17 linhas e vai 3 pixels pra frente (carrega em t5 o endereço do pixel "@8")
-	jal ra, VER		# vá para VER (verifica se o pixel "@8" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@8" detectou uma colisão)
 	
 	li t6,-5433		# t6 = -5433
 	add t5,t5,t6		# t5 volta 17 linhas e vai 7 pixels pra frente (carrega em t5 o endereço do pixel "@9")
-	jal ra, VER		# vá para VER (verifica se o pixel "@9" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@9" detectou uma colisão)
 	
 	li t6,-5429		# t6 = -5429
 	add t5,t5,t6		# t5 volta 17 linhas e vai 11 pixels pra frente (carrega em t5 o endereço do pixel "@10")
-	jal ra, VER		# vá para VER (verifica se o pixel "@10" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@10" detectou uma colisão)
 	
 	li t6,-5425		# t6 = -5425
 	add t5,t5,t6		# t5 volta 17 linhas e vai 15 pixels pra frente (carrega em t5 o endereço do pixel "@11")
-	jal ra, VER		# vá para VER (verifica se o pixel "@11" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@11" detectou uma colisão)
 	
-	j DELETE		# se nenhuma colisão foi detectada, vá para DELETE
+	j VUP			# se nenhuma colisão foi detectada, vá para VUP (Verify Up Point)
 	
 # Carrega pixels de colisão abaixo (@22, @21, @20, @19, @18)
  
 VDCO:   mv t5,s1		# t5 = s1 (carrega em t5 o endereço do pixel "@22")
-	jal ra, VER		# vá para VER (verifica se o pixel "@22" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@22" detectou uma colisão)
 	
 	addi t5,t5,3		# t5 vai 3 pixels pra frente (carrega em t5 o endereço do pixel "@21")
-	jal ra, VER		# vá para VER (verifica se o pixel "@21" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@21" detectou uma colisão)
 	
 	addi t5,t5,7		# t5 vai 7 pixels pra frente (carrega em t5 o endereço do pixel "@20")
-	jal ra, VER		# vá para VER (verifica se o pixel "@20" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@20" detectou uma colisão)
 	
 	addi t5,t5,11		# t5 vai 11 pixels pra frente (carrega em t5 o endereço do pixel "@19")
-	jal ra, VER		# vá para VER (verifica se o pixel "@19" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@19" detectou uma colisão)
 	
 	addi t5,t5,15		# t5 vai 15 pixels pra frente (carrega em t5 o endereço do pixel "@18")
-	jal ra, VER		# vá para VER (verifica se o pixel "@18" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@18" detectou uma colisão)
 	
-	j DELETE		# se nenhuma colisão foi detectada, vá para DELETE
+	j VDP			# se nenhuma colisão foi detectada, vá para VDP (Verify Down Point)
 	
 # Carrega pixels de colisão a direita (@17, @16, @15, @14, @13, @12)
  
 VRCO:   mv t5,s1		# t5 = s1
 	addi t5,t5,-304		# t5 volta 1 linha e vai 16 pixels pra frente (carrega em t5 o endereço do pixel "@17")
-	jal ra, VER		# vá para VER (verifica se o pixel "@17" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@17" detectou uma colisão)
 	
 	addi t5,t5,-1264	# t5 volta 4 linhas e vai 16 pixels pra frente (carrega em t5 o endereço do pixel "@16")
-	jal ra, VER 		# vá para VER (verifica se o pixel "@16" detectou uma colisão)
+	jal ra, VERC 		# vá para VERC (verifica se o pixel "@16" detectou uma colisão)
 	
 	li t6,-2224		# t6 = -2224
 	add t5,t5,t6		# t5 volta 7 linhas e vai 16 pixels pra frente (carrega em t5 o endereço do pixel "@15")
-	jal ra, VER		# vá para VER (verifica se o pixel "@15" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@15" detectou uma colisão)
 	
 	li t6,-3184		# t6 = -3184
 	add t5,t5,t6		# t5 volta 10 linhas e vai 16 pixels pra frente (carrega em t5 o endereço do pixel "@14")
-	jal ra, VER		# vá para VER (verifica se o pixel "@14" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@14" detectou uma colisão)
 	
 	li t6,-4144		# t6 = -4144
 	add t5,t5,t6		# t5 volta 13 linhas e vai 16 pixels pra frente (carrega em t5 o endereço do pixel "@13")
-	jal ra, VER		# vá para VER (verifica se o pixel "@13" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@13" detectou uma colisão)
 	
 	li t6,-5104		# t6 = -5104
 	add t5,t5,t6		# t5 volta 16 linhas e vai 16 pixels pra frente (carrega em t5 o endereço do pixel "@12")
-	jal ra, VER		# vá para VER (verifica se o pixel "@12" detectou uma colisão)
+	jal ra, VERC		# vá para VERC (verifica se o pixel "@12" detectou uma colisão)
 	
-	j DELETE		# se nenhuma colisão foi detectada, vá para DELETE
+	j VRP			# se nenhuma colisão foi detectada, vá para VRP (Verify Right Point)
 	
 # Verifica se algum dos pixels de colisão detectou alguma colisão
  
-VER:	li t6,0x100000		# t6 = 0x100000
+VERC:	li t6,0x100000		# t6 = 0x100000
 	add t5,t5,t6		# soma 0x100000 a t5 (transforma o conteudo de t5 em um endereço do Frame 1)
 	lbu t6,0(t5)		# carrega em t6 um byte do endereço t5 (cor do pixel de t5) -> OBS: o load byte deve ser "unsigned" 
 				# Ex: 0d200 = 0xc8 = 0b11001000. como o MSB desse byte é 1, ele seria interpretado como -56 e não 200 (t6 = 0xffffffc8)
@@ -309,6 +331,185 @@ VER:	li t6,0x100000		# t6 = 0x100000
 	beq t6,t5,FIM		# se t6 = 200, vá para FIM (se a cor do pixel for azul, termina a iteração e impede movimento do Robozinho)
 	mv t5,s1		# t5 = s1
 	ret 			# retorna para verificar se outro pixel detectou colisão
+	
+# Verifica a colisão com pontos e incrementa o contador de pontos (extremamente não otimizado, mas eh oq ta tendo pra hj)
+
+#		U
+#          	@4
+#          	@3
+#	   	@2
+#	   	@1      
+#	   	#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
+#	   	#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  
+#	   	#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  
+#	   	#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  
+#	   	#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  
+#	   	#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  
+#	   	#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  
+#	   	#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #			# representação do Robozinho 16x16 com "#"
+#	   	#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  		# os "@x" são as linhas/colunas de detecção de pontos carregadas ao redor do Robozinho (o endereço de "@x" é calculado em relação ao endereço em s1)
+#	   	#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
+#	   	#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #
+#	   	#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  
+#	   	#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #		 
+#	   	#  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #		 
+#    L @4@3@2@1 #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  @1@2@3@4 R
+#	   	@1(s1)  				        
+#	   	@2						
+#	   	@3						
+#	   	@4
+#		D 
+
+# Carrega colunas de detecção de pontos a esquerda (L - @1 @2 @3 @4)
+
+VLP: 	mv t5,s1		# t5 = s1
+	li t6,-5120		# t6 = -5120
+	addi t5,t5,-1		# volta t5 1 pixel (carrega em t5 o endereço inicial da coluna "@1" uma linha abaixo)
+	add t6,t5,t6		# t6 = t5 - 5120 (carrega em t6 o endereço final da coluna "@1", pois volta t5 16 linhas)
+	li t2,-320		# t2 = -320 (carrega em t2 o "offset" de um pixel para o outro)
+	li t1,4			# t1 = 4 (carrega em t1 um contador para verificar apenas 4 colunas)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na coluna "@1")
+	
+	addi t5,t5,-2		# volta t5 2 pixels (carrega em t5 o endereço inicial da coluna "@2" uma linha abaixo)
+	li t6,-5120		# t6 = -5120
+	add t6,t5,t6		# t6 = t5 - 5120 (carrega em t6 o endereço final da coluna "@2", pois volta t5 16 linhas)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na coluna "@2")
+	
+	addi t5,t5,-3		# volta t5 3 pixels (carrega em t5 o endereço inicial da coluna "@3" uma linha abaixo)
+	li t6,-5120		# t6 = -5120
+	add t6,t5,t6		# t6 = t5 - 5120 (carrega em t6 o endereço final da coluna "@3", pois volta t5 16 linhas)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na coluna "@3")
+	
+	addi t5,t5,-4		# volta t5 4 pixels (carrega em t5 o endereço inicial da coluna "@4" uma linha abaixo)
+	li t6,-5120		# t6 = -5120
+	add t6,t5,t6		# t6 = t5 - 5120 (carrega em t6 o endereço final da coluna "@4", pois volta t5 16 linhas)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na coluna "@4")
+	
+# Carrega linhas de detecção de pontos acima (U - @1 @2 @3 @4)
+	
+VUP:	mv t5,s1		# t5 = s1
+	li t6, -5441		# t6 = -5441
+	add t5,t5,t6		# volta t5 1 pixel e 17 linhas (carrega em t5 o endereço inicial da linha "@1" um pixel para a esquerda)
+	addi t6,t5,16		# t6 = t5 + 16 (carrega em t6 o endereço final da linha "@1", pois avança t5 16 pixels)
+	li t2,1			# t2 = 1 (carrega em t2 o "offset" de um pixel para o outro)
+	li t1,4			# t1 = 4 (carrega em t1 um contador para verificar 4 linhas)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na linha "@1")
+	
+	li t6, -5761		# t6 = -5761
+	add t5,t5,t6		# volta t5 1 pixel e 18 linhas (carrega em t5 o endereço inicial da linha "@2" um pixel para a esquerda)
+	addi t6,t5,16		# t6 = t5 + 16 (carrega em t6 o endereço final da linha "@2", pois avança t5 16 pixels)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na linha "@2")
+	
+	li t6, -6081		# t6 = -6081
+	add t5,t5,t6		# volta t5 1 pixel e 19 linhas (carrega em t5 o endereço inicial da linha "@3" um pixel para a esquerda)
+	addi t6,t5,16		# t6 = t5 + 16 (carrega em t6 o endereço final da linha "@3", pois avança t5 16 pixels)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na linha "@3")
+	
+	li t6, -6401		# t6 = -6401
+	add t5,t5,t6		# volta t5 1 pixel e 20 linhas (carrega em t5 o endereço inicial da linha "@4" um pixel para a esquerda)
+	addi t6,t5,16		# t6 = t5 + 16 (carrega em t6 o endereço final da linha "@4", pois avança t5 16 pixels)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na coluna "@4")
+	
+# Carrega linhas de detecção de pontos abaixo (D - @1 @2 @3 @4)
+	
+VDP:	mv t5,s1		# t5 = s1
+	addi t5,t5,-1		# volta t5 1 pixel (carrega em t5 o endereço inicial da linha "@1" um pixel para a esquerda)
+	addi t6,t5,16		# t6 = t5 + 16 (carrega em t6 o endereço final da linha "@1", pois avança t5 16 pixels)
+	li t2,1			# t2 = 1 (carrega em t2 o "offset" de um pixel para o outro)
+	li t1,4			# t1 = 4 (carrega em t1 um contador para verificar 4 linhas)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na linha "@1")
+			
+	addi t5,t5,319		# volta t5 1 pixel e avança t5 1 linha (carrega em t5 o endereço inicial da linha "@2" um pixel para a esquerda)
+	addi t6,t5,16		# t6 = t5 + 16 (carrega em t6 o endereço final da linha "@2", pois avança t5 16 pixels)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na linha "@2")
+			
+	addi t5,t5,639		# volta t5 1 pixel e avança t5 2 linhas (carrega em t5 o endereço inicial da linha "@3" um pixel para a esquerda)
+	addi t6,t5,16		# t6 = t5 + 16 (carrega em t6 o endereço final da linha "@3", pois avança t5 16 pixels)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na linha "@3")
+			
+	addi t5,t5,959		# volta t5 1 pixel e avança t5 3 linhas (carrega em t5 o endereço inicial da linha "@4" um pixel para a esquerda)
+	addi t6,t5,16		# t6 = t5 + 16 (carrega em t6 o endereço final da linha "@4", pois avança t5 16 pixels)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na linha "@4")
+	
+# Carrega colunas de detecção de pontos a direita (R - @1 @2 @3 @4)
+
+VRP:	mv t5,s1		# t5 = s1
+	addi t5,t5,16		# avança t5 16 pixels (carrega em t5 o endereço inicial da coluna "@1" uma linha abaixo)
+	li t6,-5120		# t6 = -5120
+	add t6,t5,t6		# t6 = t5 - 5120 (carrega em t6 o endereço final da coluna "@1", pois volta t5 16 linhas)
+	li t2,-320		# t2 = -320 (carrega em t2 o "offset" de um pixel para o outro)
+	li t1,4			# t1 = 4 (carrega em t1 um contador para verificar 4 colunas)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na coluna "@1")
+	
+	addi t5,t5,17		# avança t5 17 pixels (carrega em t5 o endereço inicial da coluna "@2" uma linha abaixo)
+	li t6,-5120		# t6 = -5120
+	add t6,t5,t6		# t6 = t5 - 5120 (carrega em t6 o endereço final da coluna "@2", pois volta t5 16 linhas)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na coluna "@2")
+	
+	addi t5,t5,18		# avança t5 18 pixels (carrega em t5 o endereço inicial da coluna "@3" uma linha abaixo)
+	li t6,-5120		# t6 = -5120
+	add t6,t5,t6		# t6 = t5 - 5120 (carrega em t6 o endereço final da coluna "@3", pois volta t5 16 linhas)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na coluna "@3")
+	
+	addi t5,t5,19		# avança t5 19 pixels (carrega em t5 o endereço inicial da coluna "@4" uma linha abaixo)
+	li t6,-5120		# t6 = -5120
+	add t6,t5,t6		# t6 = t5 - 5120 (carrega em t6 o endereço final da coluna "@4", pois volta t5 16 linhas)
+	jal ra, VERP		# vá para VERP (verifica se há ponto na coluna "@4")
+
+# Verifica se algum dos pixels de pontuação detectou algum ponto
+ 
+VERP:	add t5,t5,t2		# t5 = t5 + offset (pula para o pixel seguinte da linha\coluna)
+	lbu t4,0(t5)		# carrega em t4 um byte do endereço t5 (cor do pixel de t5)
+	li t3,63		# t3 = 63 (cor amarela)
+	beq t4,t3,PONTO		# se t4 = 63, vá para PONTO (atualiza o contador de pontos e termina a busca por pontos a serem coletados)
+	beq t5,t6,NXTLINE	# se t5 = t6, vá para NXTLINE (se o endereço analisado for o último da linha/coluna, pule para a linha/coluna seguinte)
+	j VERP			# pule para VERP (se nenhum ponto foi detectado, volte para o início do loop)
+	
+NXTLINE:addi t1,t1,-1		# t1 = t1 - 1 (reduz o contador de linhas/colunas analisadas)
+	beq t1,zero,DELETE	# se t1 = 0, vá para DELETE (se nenhum ponto for encontrado, apenas mova o Robozinho)
+	mv t5,s1		# t5 = s1
+	ret 			# retorna para verificar se outro pixel detectou pontos 
+	
+PONTO:  addi s4,s4,1		# incrementa o contador de pontos
+	addi t1,t1,-1		# t1 = t1 - 1 (reduz o contador de linhas/colunas analisadas)
+	beq t1,zero,DELPNT	# se t1 = 0, vá para DELPNT (se o ponto foi encontrado na última linha/coluna analisada, deve-se apagar o restante do ponto)
+	j DELETE		# pule para DELETE (se o ponto foi encontrado nas 3 primeiras linhas/colunas, apenas mova o Robozinho)
+
+DELPNT:	li t1,97		# carrega 97 (valor hex de "a") para t1
+  	beq s6,t1,DELLFT	# se t0 for igual a 97 (valor hex de "a"), vá para DELLFT
+  	
+  	li t1,119		# carrega 119 (valor hex de "w") para t1
+  	beq s6,t1,DELUP	        # se t0 for igual a 119 (valor hex de "w"), vá para DELUP
+  	
+  	li t1,115		# carrega 115 (valor hex de "s") para t1
+  	beq s6,t1,DELDWN	# se t0 for igual a 115 (valor hex de "s"), vá para DELDWN
+  	
+  	li t1,100  		# carrega 100 (valor hex de "d") para t1
+	beq s6,t1,DELRGHT	# se t0 for igual a 100 (valor hex de "d"), vá para DELRGHT
+	
+DELLFT: addi t5,t5,-1		# t5 = t5 - 1 (carrega o endereço do pixel inferior esquerdo do ponto detectado)
+	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa)
+	addi t5,t5,-320		# t5 = t5 - 320 (carrega o endereço do pixel superior esquerdo do ponto detectado)
+	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa)
+	j DELETE 		# pule para DELETE
+	
+DELUP:	addi t5,t5,-320		# t5 = t5 - 320 (carrega o endereço do pixel superior esquerdo do ponto detectado)
+	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa)
+	addi t5,t5,1		# t5 = t5 + 1 (carrega o endereço do pixel superior direito do ponto detectado)
+	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa)
+	j DELETE		# pule para DELETE
+	
+DELDWN:	addi t5,t5,320		# t5 = t5 + 320 (carrega o endereço do pixel inferior esquerdo do ponto detectado)
+	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa)
+	addi t5,t5,1		# t5 = t5 + 1 (carrega o endereço do pixel inferior direito do ponto detectado)
+	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa)
+	j DELETE		# pule para DELETE
+
+DELRGHT:addi t5,t5,1		# t5 = t5 + 1 (carrega o endereço do pixel inferior direito do ponto detectado)
+	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa)
+	addi t5,t5,-320		# t5 = t5 + 1 (carrega o endereço do pixel superior direito do ponto detectado)
+	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa)
+	j DELETE		# pule para DELETE
 	
 # Printa preto em cima da posição do personagem (apaga o personagem anterior)
 	
@@ -488,3 +689,7 @@ FIM:	li a0,80
 	ecall			# serviço 32 do ecall (sleep - a proxima iteraçao demora 50 milissegundos para acontecer)
 	
 	j MAINL			# retorna ao loop principal
+	
+.data
+
+.include "SYSTEMv24.s"
