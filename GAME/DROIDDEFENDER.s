@@ -13,19 +13,20 @@
 #									#
 #########################################################################
 
-.include "MACROSv24.s"
+.include "../System/MACROSv24.s"
 
 .data
 
-.include "mapa1.data"
-.include "mapa1colisao.data"
-.include "Robozinho1.data"
-.include "Robozinho2.data"
-.include "Robozinho1preto.data"
-.include "Inimigo1.data"
-.include "Inimigo2.data"
-.include "Inimigo3.data"
-.include "Inimigo4.data"
+.include "../DATA/mapa1.data"
+.include "../DATA/mapa1colisao.data"
+.include "../DATA/Robozinho1.data"
+.include "../DATA/Robozinho2.data"
+.include "../DATA/Robozinho1preto.data"
+.include "../DATA/Inimigo1.data"
+.include "../DATA/Inimigo2.data"
+.include "../DATA/Inimigo3.data"
+.include "../DATA/Inimigo4.data"
+.include "../DATA/menuprincipal.data"
 
 STR: .string "PONTOS: "
 
@@ -37,6 +38,26 @@ STR: .string "PONTOS: "
 # s2 = pixel final para preenchimento de imagem
 # s3 carrega um contador de paridade baseado nos inputs do jogador(tick-counter)
 # s4 contador de pontos coletados
+
+# Carrega o menu principal
+	
+	li s1,0xFF000000	# s1 = endereco inicial da Memoria VGA - Frame 0
+	li s2,0xFF012C00	# s2 = endereco final da Memoria VGA - Frame 0
+	la s0,menuprincipal	# s0 = endereço dos dados do mapa 1
+	addi s0,s0,8		# s0 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
+	
+LOOPM: 	beq s1,s2,LOOPMENU		# se s1 = último endereço da Memoria VGA, saia do loop
+	lw t0,0(s0)		# le uma word do endereço s0 (le 4 pixels da imagem)
+	sw t0,0(s1)		# escreve a word na memória VGA no endereço s1 (desenha 4 pixels na tela do Bitmap Display)
+	addi s1,s1,4		# soma 4 ao endereço s1 
+	addi s0,s0,4		# soma 4 ao endereço s0
+	j LOOPM			# volta a verificar a condiçao do loop
+	
+LOOPMENU:  li t2,0xFF200000	# carrega o endereço de controle do KDMMIO ("teclado")
+	lw t0,0(t2)		# le uma word a partir do endereço de controle do KDMMIO
+	andi t0,t0,0x0001	# mascara todos os bits de t0 com exceçao do bit menos significativo
+   	bne t0,zero,IMG1   	# se o BMS de t0 n�o for 0 (h� tecla pressionada), pule para MAPA1
+   	j LOOPMENU
 	
 # Carrega a imagem1 (mapa1) no frame 0
 	
@@ -692,4 +713,4 @@ FIM:	li a0,80
 	
 .data
 
-.include "SYSTEMv24.s"
+.include "../System/SYSTEMv24.s"
