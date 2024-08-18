@@ -13,20 +13,20 @@
 #									#
 #########################################################################
 
-.include "MACROSv24.s" 		# permite a utilização dos ecalls "1xx"
+.include "../DATA/MACROSv24.s" 		# permite a utilização dos ecalls "1xx"
 	
 .data
 
-.include "mapa1.data"
-.include "mapa1colisao.data"
-.include "menuprincipal.data"
-.include "Robozinho1.data"
-.include "Robozinho2.data"
-.include "Robozinho1preto.data"
-.include "Inimigo1.data"
-.include "Inimigo2.data"
-.include "Inimigo3.data"
-.include "Inimigo4.data"
+.include "../DATA/mapa1.data"
+.include "../DATA/mapa1colisao.data"
+.include "../DATA/menuprincipal.data"
+.include "../DATA/Robozinho1.data"
+.include "../DATA/Robozinho2.data"
+.include "../DATA/Robozinho1preto.data"
+.include "../DATA/Inimigo1.data"
+.include "../DATA/Inimigo2.data"
+.include "../DATA/Inimigo3.data"
+.include "../DATA/Inimigo4.data"
 
 STR: .string "PONTOS: "
 
@@ -740,4 +740,4 @@ FIM:	li a7,32		# carrega em a7 o serviço 32 do ecall (sleep - interrompe a exec
 	
 .data
 
-.include "SYSTEMv24.s"		# permite a utilização dos ecalls "1xx"
+.include "../DATA/SYSTEMv24.s"		# permite a utilização dos ecalls "1xx"
