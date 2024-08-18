@@ -13,20 +13,20 @@
 #									#
 #########################################################################
 
-.include "../System/MACROSv24.s"
-
+.include "MACROSv24.s" 		# permite a utilização dos ecalls "1xx"
+	
 .data
 
-.include "../DATA/mapa1.data"
-.include "../DATA/mapa1colisao.data"
-.include "../DATA/Robozinho1.data"
-.include "../DATA/Robozinho2.data"
-.include "../DATA/Robozinho1preto.data"
-.include "../DATA/Inimigo1.data"
-.include "../DATA/Inimigo2.data"
-.include "../DATA/Inimigo3.data"
-.include "../DATA/Inimigo4.data"
-.include "../DATA/menuprincipal.data"
+.include "mapa1.data"
+.include "mapa1colisao.data"
+.include "menuprincipal.data"
+.include "Robozinho1.data"
+.include "Robozinho2.data"
+.include "Robozinho1preto.data"
+.include "Inimigo1.data"
+.include "Inimigo2.data"
+.include "Inimigo3.data"
+.include "Inimigo4.data"
 
 STR: .string "PONTOS: "
 
@@ -36,8 +36,9 @@ STR: .string "PONTOS: "
 # s0 carrega o endereço do mapa1 e do Robozinho
 # s1 = pixel inicial para preenchimento de imagem
 # s2 = pixel final para preenchimento de imagem
-# s3 carrega um contador de paridade baseado nos inputs do jogador(tick-counter)
-# s4 contador de pontos coletados
+# s3 carrega um contador de paridade (tick-counter)
+# s4 = contador de pontos coletados
+# s5 = atual direção do movimento do Robozinho
 
 # Carrega o menu principal
 	
@@ -46,18 +47,18 @@ STR: .string "PONTOS: "
 	la s0,menuprincipal	# s0 = endereço dos dados do mapa 1
 	addi s0,s0,8		# s0 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
 	
-LOOPM: 	beq s1,s2,LOOPMENU		# se s1 = último endereço da Memoria VGA, saia do loop
+LOOPM: 	beq s1,s2,LOOPMEN	# se s1 = ultimo endereço da Memoria VGA, saia do loop
 	lw t0,0(s0)		# le uma word do endereço s0 (le 4 pixels da imagem)
-	sw t0,0(s1)		# escreve a word na memória VGA no endereço s1 (desenha 4 pixels na tela do Bitmap Display)
+	sw t0,0(s1)		# escreve a word na memoria VGA no endereço s1 (desenha 4 pixels na tela do Bitmap Display)
 	addi s1,s1,4		# soma 4 ao endereço s1 
 	addi s0,s0,4		# soma 4 ao endereço s0
 	j LOOPM			# volta a verificar a condiçao do loop
 	
-LOOPMENU:  li t2,0xFF200000	# carrega o endereço de controle do KDMMIO ("teclado")
+LOOPMEN:li t2,0xFF200000	# carrega o endereço de controle do KDMMIO ("teclado")
 	lw t0,0(t2)		# le uma word a partir do endereço de controle do KDMMIO
 	andi t0,t0,0x0001	# mascara todos os bits de t0 com exceçao do bit menos significativo
-   	bne t0,zero,IMG1   	# se o BMS de t0 n�o for 0 (h� tecla pressionada), pule para MAPA1
-   	j LOOPMENU
+   	bne t0,zero,IMG1   	# se o BMS de t0 não for 0 (há tecla pressionada), pule para MAPA1
+   	j LOOPMEN
 	
 # Carrega a imagem1 (mapa1) no frame 0
 	
@@ -179,49 +180,63 @@ SETUP_MAIN:
 	li s1,0xFF00B4C8	# s1 = endereco inicial da linha diretamente abaixo do Robozinho
 	li s2,0xFF00B4D8	# s2 = endereco final da linha diretamente abaixo do Robozinho (inicial +16)
 	li s4,0			# s4 = 0 (zera o contador de pontos coletados)
+	li s5,0			# s4 = 0 (zera o contador de movimentação atual)
 	li s8,0xFF0064C8	# s8 = coordenada inicial do alien vermelho (blinky)
 	#li s9,
 	#li s10, 
 	#li s11, 	
 
-# Loop principal do jogo (verifica se ha teclas de movimentação pressionadas)
+# Loop principal do jogo (mostra pontuação na tela e verifica se ha teclas de movimentação pressionadas)
 
-MAINL:  li a7,104
-	la a0,STR
-	li a1,0
-        li a2,0
-	li a3,0x00FF
-	li a4,0
-	ecall
+MAINL:  li a7,104		# carrega em a7 o serviço 104 do ecall (print string on bitmap display)
+	la a0,STR		# carrega em a0 o endereço da string a ser printada (STR: "PONTOS: ")
+	li a1,0			# carrega em a1 a coluna a partir da qual a string vai ser printada (coluna 0)
+        li a2,2			# carrega em a2 a linha a partir da qual a string vai ser printada (linha 2)
+	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
+	li a4,0 		# carrega em a4 o frame onde a string deve ser printada (Frame 0 da memoria VGA)
+	ecall			# realiza o ecall
 	
-	li a7,101
-	mv a0,s4
-	li a1,60
-        li a2,0
-	li a3,0x00FF
-	li a4,0
-	ecall
+	li a7,101		# carrega em a7 o serviço 101 do ecall (print integer on bitmap display)
+	mv a0,s4		# carrega em a0 o valor do inteiro a ser printado (a0 = s4 = pontuação atual do jogador)
+	li a1,60		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 60)
+        li a2,2			# carrega em a1 a linha a partir da qual o inteiro vai ser printado (linha 2)
+	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
+	li a4,0			# carrega em a4 o frame onde o inteiro deve ser printado (Frame 0 da memoria VGA)
+	ecall			# realiza o ecall
 	
 	li t2,0xFF200000	# carrega o endereço de controle do KDMMIO ("teclado")
 	lw t0,0(t2)		# le uma word a partir do endereço de controle do KDMMIO
 	andi t0,t0,0x0001	# mascara todos os bits de t0 com exceçao do bit menos significativo
-   	beq t0,zero,FIM   	# se o BMS de t0 for 0 (não há tecla pressionada), pule para FIM
+   	beq t0,zero,MOVE   	# se o BMS de t0 for 0 (não há tecla pressionada), pule para MOVE (continua o movimento atual do Robozinho)
  
   	lw s6,4(t2)		# le o valor da tecla pressionada
   	
   	li t1,97		# carrega 97 (valor hex de "a") para t1
-  	beq s6,t1,VLCO		# se t0 for igual a 97 (valor hex de "a"), vá para VLCO (verify left colision)
+  	beq s6,t1,VLCO		# se s6 for igual a 97 (valor hex de "a"), vá para VLCO (verify left colision)
   	
   	li t1,119		# carrega 119 (valor hex de "w") para t1
-  	beq s6,t1,VUCO		# se t0 for igual a 119 (valor hex de "w"), vá para VUCO (verify up colision)
+  	beq s6,t1,VUCO		# se s6 for igual a 119 (valor hex de "w"), vá para VUCO (verify up colision)
   	
   	li t1,115		# carrega 115 (valor hex de "s") para t1
-  	beq s6,t1,VDCO		# se t0 for igual a 115 (valor hex de "s"), vá para VDCO (verify down colision)
+  	beq s6,t1,VDCO		# se d6 for igual a 115 (valor hex de "s"), vá para VDCO (verify down colision)
   	
   	li t1,100  		# carrega 100 (valor hex de "d") para t1
-	beq s6,t1,VRCO		# se t0 for igual a 100 (valor hex de "d"), vá para VRCO (verify right colision)
+	beq s6,t1,VRCO		# se s6 for igual a 100 (valor hex de "d"), vá para VRCO (verify right colision)
 	
-	j FIM			# se outra tecla for pressionada, vá para FIM
+MOVE:  	li t1,0			# carrega 0 para t1
+  	beq s5,t1,FIM		# se s5 for igual a 0 (valor de movimento atual nulo), vá para FIM
+  	
+  	li t1,1			# carrega 1 para t1
+  	beq s5,t1,VLCO		# se s5 for igual a 1 (valor de movimento atual para a esquerda), vá para VLCO (verify left colision)
+  	
+  	li t1,2			# carrega 2 para t1
+  	beq s5,t1,VUCO		# se s5 for igual a 2 (valor de movimento atual para cima), vá para VUCO (verify up colision)
+  	
+  	li t1,3  		# carrega 3 para t1
+	beq s5,t1,VDCO		# se s5 for igual a 3 (valor de movimento atual para baixo), vá para VDCO (verify down colision)
+	
+	li t1,4  		# carrega 4 para t1
+	beq s5,t1,VRCO		# se s5 for igual a 4 (valor de movimento atual para a direita), vá para VRCO (verify right colision)
 	
 # Verifica a colisao do mapa (VLCO, VUCO, VDCO e VRCO carregam 5 pixels de detecção de colisão em cada direção, e VER verifica se algum desses pixels detectou uma colisão adiante)
 
@@ -269,6 +284,7 @@ VLCO:   mv t5,s1		# t5 = s1
 	add t5,t5,t6		# volta t5 16 linhas e 1 pixel (carrega em t5 o endereço do pixel "@6")
 	jal ra, VERC		# vá para VERC (verifica se o pixel "@6" detectou uma colisão)
 	
+	li s5,1			# se nenhuma colisão foi detectada, movimentação atual = 1 (esquerda)
 	j VLP			# se nenhuma colisão foi detectada, vá para VLP (Verify Left Point)
 	
 # Carrega pixels de colisão acima (@7, @8, @9, @10, @11)
@@ -293,12 +309,13 @@ VUCO:	mv t5,s1		# t5 = s1
 	li t6,-5425		# t6 = -5425
 	add t5,t5,t6		# t5 volta 17 linhas e vai 15 pixels pra frente (carrega em t5 o endereço do pixel "@11")
 	jal ra, VERC		# vá para VERC (verifica se o pixel "@11" detectou uma colisão)
-	
+
+	li s5,2			# se nenhuma colisão foi detectada, movimentação atual = 2 (cima)
 	j VUP			# se nenhuma colisão foi detectada, vá para VUP (Verify Up Point)
 	
 # Carrega pixels de colisão abaixo (@22, @21, @20, @19, @18)
  
-VDCO:   mv t5,s1		# t5 = s1 (carrega em t5 o endereço do pixel "@22")
+VDCO:	mv t5,s1		# t5 = s1 (carrega em t5 o endereço do pixel "@22")
 	jal ra, VERC		# vá para VERC (verifica se o pixel "@22" detectou uma colisão)
 	
 	addi t5,t5,3		# t5 vai 3 pixels pra frente (carrega em t5 o endereço do pixel "@21")
@@ -313,11 +330,12 @@ VDCO:   mv t5,s1		# t5 = s1 (carrega em t5 o endereço do pixel "@22")
 	addi t5,t5,15		# t5 vai 15 pixels pra frente (carrega em t5 o endereço do pixel "@18")
 	jal ra, VERC		# vá para VERC (verifica se o pixel "@18" detectou uma colisão)
 	
+	li s5,3			# se nenhuma colisão foi detectada, movimentação atual = 3 (baixo)
 	j VDP			# se nenhuma colisão foi detectada, vá para VDP (Verify Down Point)
 	
 # Carrega pixels de colisão a direita (@17, @16, @15, @14, @13, @12)
  
-VRCO:   mv t5,s1		# t5 = s1
+VRCO:	mv t5,s1		# t5 = s1
 	addi t5,t5,-304		# t5 volta 1 linha e vai 16 pixels pra frente (carrega em t5 o endereço do pixel "@17")
 	jal ra, VERC		# vá para VERC (verifica se o pixel "@17" detectou uma colisão)
 	
@@ -340,6 +358,7 @@ VRCO:   mv t5,s1		# t5 = s1
 	add t5,t5,t6		# t5 volta 16 linhas e vai 16 pixels pra frente (carrega em t5 o endereço do pixel "@12")
 	jal ra, VERC		# vá para VERC (verifica se o pixel "@12" detectou uma colisão)
 	
+	li s5,4			# se nenhuma colisão foi detectada, movimentação atual = 4 (direita)
 	j VRP			# se nenhuma colisão foi detectada, vá para VRP (Verify Right Point)
 	
 # Verifica se algum dos pixels de colisão detectou alguma colisão
@@ -496,17 +515,17 @@ PONTO:  addi s4,s4,1		# incrementa o contador de pontos
 	beq t1,zero,DELPNT	# se t1 = 0, vá para DELPNT (se o ponto foi encontrado na última linha/coluna analisada, deve-se apagar o restante do ponto)
 	j DELETE		# pule para DELETE (se o ponto foi encontrado nas 3 primeiras linhas/colunas, apenas mova o Robozinho)
 
-DELPNT:	li t1,97		# carrega 97 (valor hex de "a") para t1
-  	beq s6,t1,DELLFT	# se t0 for igual a 97 (valor hex de "a"), vá para DELLFT
+DELPNT:	li t1,1			# carrega 1 para t1
+  	beq s5,t1,DELLFT	# se s5 for igual a 1 (valor de movimento atual para a esquerda), vá para DELLFT
   	
-  	li t1,119		# carrega 119 (valor hex de "w") para t1
-  	beq s6,t1,DELUP	        # se t0 for igual a 119 (valor hex de "w"), vá para DELUP
+  	li t1,2			# carrega 2 para t1
+  	beq s5,t1,DELUP		# se s5 for igual a 2 (valor de movimento atual para cima), vá para DELUP
   	
-  	li t1,115		# carrega 115 (valor hex de "s") para t1
-  	beq s6,t1,DELDWN	# se t0 for igual a 115 (valor hex de "s"), vá para DELDWN
-  	
-  	li t1,100  		# carrega 100 (valor hex de "d") para t1
-	beq s6,t1,DELRGHT	# se t0 for igual a 100 (valor hex de "d"), vá para DELRGHT
+  	li t1,3  		# carrega 3 para t1
+	beq s5,t1,DELDWN	# se s5 for igual a 3 (valor de movimento atual para baixo), vá para DELDWN
+	
+	li t1,4  		# carrega 4 para t1
+	beq s5,t1,DELRGHT	# se s5 for igual a 4 (valor de movimento atual para a direita), vá para DELRGHT
 	
 DELLFT: addi t5,t5,-1		# t5 = t5 - 1 (carrega o endereço do pixel inferior esquerdo do ponto detectado)
 	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa)
@@ -561,23 +580,23 @@ ENTER2:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 	
 VERIFY: addi s3,s3,1		# incrementa o contador de estados do Robozinho (se s3 for par -> Robozinho1; se s3 for impar -> Robozinho2)
 
-	li t1,97		# carrega 97 (valor hex de "a") para t1
-  	beq s6,t1,MOVLFT	# se t0 for igual a 97 (valor hex de "a"), vá para MOVLFT
+	li t1,1			# carrega 1 para t1
+  	beq s5,t1,MOVLFT	# se s5 for igual a 1 (valor de movimento atual para a esquerda), vá para MOVLFT
   	
-  	li t1,119		# carrega 119 (valor hex de "w") para t1
-  	beq s6,t1,MOVUP	        # se t0 for igual a 119 (valor hex de "w"), vá para MOVUP
+  	li t1,2			# carrega 2 para t1
+  	beq s5,t1,MOVUP		# se s5 for igual a 2 (valor de movimento atual para cima), vá para MOVUP
   	
-  	li t1,115		# carrega 115 (valor hex de "s") para t1
-  	beq s6,t1,MOVDWN	# se t0 for igual a 115 (valor hex de "s"), vá para MOVDWN
-  	
-  	li t1,100  		# carrega 100 (valor hex de "d") para t1
-	beq s6,t1,MOVRGHT	# se t0 for igual a 100 (valor hex de "d"), vá para MOVRGHT
+  	li t1,3  		# carrega 3 para t1
+	beq s5,t1,MOVDWN	# se s5 for igual a 3 (valor de movimento atual para baixo), vá para MOVDWN
+	
+	li t1,4  		# carrega 4 para t1
+	beq s5,t1,MOVRGHT	# se s5 for igual a 4 (valor de movimento atual para a direita), vá para MOVRGHT
 		
 # Printa o personagem 4 pixels para frente (move o Robozinho para a direita)	
 	
-MOVRGHT:li t3, 5116
-	sub s1, s1, t3		# volta s1 16 linhas e vai 4 pixels pra frente (pixel inicial + 4) 
-	sub s2, s2, t3		# volta s2 16 linhas e vai 4 pixels pra frente (pixel final + 4)
+MOVRGHT:li t3,5116		# t3 = 5116
+	sub s1,s1,t3		# volta s1 16 linhas e vai 4 pixels pra frente (pixel inicial + 4) 
+	sub s2, s2,t3		# volta s2 16 linhas e vai 4 pixels pra frente (pixel final + 4)
 	
 	li t1,0
 	li t2,16		# reinicia contador para 16 quebras de linha
@@ -603,14 +622,14 @@ LOOP3: 	beq s1,s2,ENTER3	# se s1 atingir o fim da linha de pixels, quebre linha
 ENTER3:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 	addi s2,s2,320		# s2 pula para o pixel final da linha de baixo
 	addi t1,t1,1            # reinicia o contador de quebras de linha
-	beq t1,t2,FIM		# termine o carregamento da imagem se 16 quebras de linha ocorrerem
+	beq t1,t2,FIMMOV	# termine o carregamento da imagem se 16 quebras de linha ocorrerem
 	j LOOP3			# pula para loop 3
 	
 # Printa o personagem 4 linhas para baixo (move o Robozinho para baixo)	
 	
-MOVDWN: li t3, 3840
-	sub s1, s1, t3		# volta s1 12 linhas (pixel inicial 4 linhas abaixo) 
-	sub s2, s2, t3		# volta s2 12 linhas (pixel final 4 linhas abaixo)
+MOVDWN: li t3,3840		# t3 = 3840
+	sub s1,s1,t3		# volta s1 12 linhas (pixel inicial 4 linhas abaixo) 
+	sub s2,s2,t3		# volta s2 12 linhas (pixel final 4 linhas abaixo)
 	
 	li t1,0
 	li t2,16		# reinicia contador para 16 quebras de linha
@@ -636,14 +655,14 @@ LOOP4: 	beq s1,s2,ENTER4	# se s1 atingir o fim da linha de pixels, quebre linha
 ENTER4:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 	addi s2,s2,320		# s2 pula para o pixel final da linha de baixo
 	addi t1,t1,1            # reinicia o contador de quebras de linha
-	beq t1,t2,FIM		# termine o carregamento da imagem se 16 quebras de linha ocorrerem
+	beq t1,t2,FIMMOV	# termine o carregamento da imagem se 16 quebras de linha ocorrerem
 	j LOOP4			# pula para loop 4
 
 # Printa o personagem 4 linhas para cima (move o Robozinho para cima)	
 	
-MOVUP:  li t3, 6400
-	sub s1, s1, t3	# volta s1 20 linhas (pixel inicial 4 linhas acima) 
-	sub s2, s2, t3	# volta s2 20 linhas (pixel final 4 linhas acima)
+MOVUP:  li t3,6400		# t3 = 6400
+	sub s1,s1,t3		# volta s1 20 linhas (pixel inicial 4 linhas acima) 
+	sub s2,s2,t3		# volta s2 20 linhas (pixel final 4 linhas acima)
 	
 	li t1,0
 	li t2,16		# reinicia contador para 16 quebras de linha
@@ -669,14 +688,14 @@ LOOP5: 	beq s1,s2,ENTER5	# se s1 atingir o fim da linha de pixels, quebre linha
 ENTER5:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 	addi s2,s2,320		# s2 pula para o pixel final da linha de baixo
 	addi t1,t1,1            # reinicia o contador de quebras de linha
-	beq t1,t2,FIM		# termine o carregamento da imagem se 16 quebras de linha ocorrerem
+	beq t1,t2,FIMMOV	# termine o carregamento da imagem se 16 quebras de linha ocorrerem
 	j LOOP5 		# pula para loop 5
 	
 # Printa o personagem 4 pixels para a esquerda (move o Robozinho para a esquerda)	
 	
-MOVLFT: li t3, 5124
-	sub s1, s1, t3	        # volta s1 16 linhas e vai 4 pixels pra esquerda (pixel inicial - 4) 
-	sub s2, s2, t3	        # volta s2 16 linhas e vai 4 pixels pra esquerda (pixel final - 4)  
+MOVLFT: li t3,5124		# t3 = 5124
+	sub s1,s1,t3	        # volta s1 16 linhas e vai 4 pixels pra esquerda (pixel inicial - 4) 
+	sub s2,s2,t3	        # volta s2 16 linhas e vai 4 pixels pra esquerda (pixel final - 4)  
 	
 	li t1,0
 	li t2,16		# reinicia contador para 16 quebras de linha
@@ -702,15 +721,23 @@ LOOP6: 	beq s1,s2,ENTER6	# se s1 atingir o fim da linha de pixels, quebre linha
 ENTER6:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 	addi s2,s2,320		# s2 pula para o pixel final da linha de baixo
 	addi t1,t1,1            # reinicia o contador de quebras de linha
-	beq t1,t2,FIM		# termine o carregamento da imagem se 16 quebras de linha ocorrerem
+	beq t1,t2,FIMMOV	# termine o carregamento da imagem se 16 quebras de linha ocorrerem
 	j LOOP6			# pula para loop 6
 	
-FIM:	li a0,80		
-	li a7,32
-	ecall			# serviço 32 do ecall (sleep - a proxima iteraçao demora 50 milissegundos para acontecer)
+# Se o Robozinho tiver se movimentado, espera 80 ms para a próxima iteração (visa reduzir a velocidade do Robozinho)
 	
+FIMMOV:	li a7,32		# carrega em a7 o serviço 32 do ecall (sleep - interrompe a execução do programa)
+	li a0,80		# carrega em a0 o tempo pelo qual o codigo sera interrompido (80 ms)
+	ecall			# realiza o ecall
+	j MAINL			# retorna ao loop principal
+	
+# Se o Robozinho não tiver se movimentado, espera 2 ms para a próxima iteração (visa reduzir o "flick" do contador de pontos)
+	
+FIM:	li a7,32		# carrega em a7 o serviço 32 do ecall (sleep - interrompe a execução do programa)
+	li a0,2			# carrega em a0 o tempo pelo qual o codigo sera interrompido (80 ms)
+	ecall			# realiza o ecall
 	j MAINL			# retorna ao loop principal
 	
 .data
 
-.include "../System/SYSTEMv24.s"
+.include "SYSTEMv24.s"		# permite a utilização dos ecalls "1xx"
