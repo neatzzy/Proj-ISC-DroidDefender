@@ -13,7 +13,7 @@
 #									#
 #########################################################################
 
-.include "../DATA/MACROSv24.s" 		# permite a utilização dos ecalls "1xx"
+.include "../SYSTEM/MACROSv24.s" 		# permite a utilização dos ecalls "1xx"
 	
 .data
 
@@ -740,4 +740,4 @@ FIM:	li a7,32		# carrega em a7 o serviço 32 do ecall (sleep - interrompe a exec
 	
 .data
 
-.include "../DATA/SYSTEMv24.s"		# permite a utilização dos ecalls "1xx"
+.include "../SYSTEM/SYSTEMv24.s"		# permite a utilização dos ecalls "1xx"
