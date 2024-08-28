@@ -30,6 +30,14 @@
 
 STR: .string "PONTOS: "
 
+# Numero de Notas a tocar
+NUM: .word 64
+NUM2: .word 16
+# lista de nota,duraÁ„o,nota,duraÁ„o,nota,duraÁ„o,...
+NOTAS: 66, 230, 61, 230, 78, 230, 61, 230, 73, 230, 61, 230, 76, 230, 78, 230, 73, 230, 76, 230, 73, 230, 76, 230, 78, 230, 61, 230, 78, 230, 61, 230, 76, 230, 64, 230, 71, 230, 62, 230, 71, 230, 64, 230, 73, 230, 76, 230, 73, 230, 71, 230, 73, 230, 61, 230, 73, 230, 61, 230, 73, 230, 61, 230, 69, 230, 64, 230, 66, 230, 61, 230, 57, 230, 61, 230, 57, 230, 61, 230, 69, 230, 64, 230, 66, 230, 61, 230, 57, 230, 61, 230, 76, 230, 78, 230, 73, 230, 71, 230, 73, 230, 57, 230, 73, 230, 57, 230, 64, 230, 57, 230, 73, 230, 57, 230, 73, 230, 57, 230, 64, 230, 57, 230, 73, 230, 57, 230 
+NOTAS2: 42, 923, 49, 923, 42, 923, 49, 923, 44, 923, 52, 923, 45, 923, 49, 923, 42, 923, 49, 923, 42, 923, 49, 923, 45, 923, 52, 923, 45, 923, 52, 923 
+
+
 .text
 
 # Fun√ß√µes dos registradores: 
@@ -47,18 +55,67 @@ STR: .string "PONTOS: "
 	la s0,menuprincipal	# s0 = endere√ßo dos dados do mapa 1
 	addi s0,s0,8		# s0 = endere√ßo do primeiro pixel da imagem (depois das informa√ß√µes de nlin ncol)
 	
-LOOPM: 	beq s1,s2,LOOPMEN	# se s1 = ultimo endere√ßo da Memoria VGA, saia do loop
+LOOPM: 	beq s1,s2,LOOPMENU	# se s1 = ultimo endere√ßo da Memoria VGA, saia do loop
 	lw t0,0(s0)		# le uma word do endere√ßo s0 (le 4 pixels da imagem)
 	sw t0,0(s1)		# escreve a word na memoria VGA no endere√ßo s1 (desenha 4 pixels na tela do Bitmap Display)
 	addi s1,s1,4		# soma 4 ao endere√ßo s1 
 	addi s0,s0,4		# soma 4 ao endere√ßo s0
 	j LOOPM			# volta a verificar a condi√ßao do loop
 	
-LOOPMEN:li t2,0xFF200000	# carrega o endere√ßo de controle do KDMMIO ("teclado")
+LOOPMENU:    la s0, NUM       # define o endereÁo do n˙mero de notas
+    lw s1, 0(s0)     # le o numero de notas
+    la s0, NOTAS     # define o endereÁo das notas
+    li t0, 0         # zera o contador de notas
+
+    la s2, NUM2      # define o endereÁo do n˙mero de notas2
+    lw s3, 0(s2)     # le o numero de notas2
+    la s2, NOTAS2    # define o endereÁo de notas2
+    li t1, 0         # zera o contador de notas2
+
+    li a2, 32        # define o instrumento para notas
+    li a4, 128       # define o instrumento para notas2
+    li a3, 127       # define o volume para notas
+    li s4, 0	     # 16 para contagem de notas2
+    
+DOIS:
+    # Play the note from NOTAS2 
+    lw a6, 0(s2)     # le o valor da segunda nota
+    lw a7, 4(s2)     # le a duracao da segunda nota
+    mv a0, a6        # move valor da segunda nota para a0
+    mv a1, a7        # move duracao da segunda nota para a1
+    li a7, 31        # define a chamada de syscall para tocar nota
+    ecall            # toca a segunda nota
+    
+   	 # Increment counters and pointers
+   	 addi s4, s4, 4  # zera o contador de notas2
+   	 addi s2, s2, 8   # incrementa para o endereÁo da prÛxima nota
+   	 addi t1, t1, 1   # incrementa o contador de notas
+
+LOOP:   
+		li t2,0xFF200000	# carrega o endere√ßo de controle do KDMMIO ("teclado")
 	lw t0,0(t2)		# le uma word a partir do endere√ßo de controle do KDMMIO
 	andi t0,t0,0x0001	# mascara todos os bits de t0 com exce√ßao do bit menos significativo
    	bne t0,zero,IMG1   	# se o BMS de t0 n√£o for 0 (h√° tecla pressionada), pule para MAPA1
-   	j LOOPMEN
+   	
+ 	   beq t0, s4, DOIS    # se o contador2 chegou em 16, v· para DOIS
+    
+  	  # Play note from NOTAS
+    	lw a0, 0(s0)        # le o valor da nota
+   	 lw a1, 4(s0)        # le a duracao da nota
+   	 li a7, 31           # define a chamada de syscall para tocar nota
+    	ecall               # toca a nota
+
+    # Pause for note duration
+    	addi a1, a1, -5	    # reduzir a pausa pra evitar pausa abrupta nas notas
+   	 mv a0, a1           # move duracao da nota para a pausa
+  	  li a7, 32           # define a chamada de syscal para pausa
+   	 ecall               # realiza uma pausa de a0 ms
+
+    # Increment counters and pointers
+   	 addi s0, s0, 8      # incrementa para o endereÁo da prÛxima nota
+   	 addi t0, t0, 1      # incrementa o contador de notas
+   	 
+   	 j LOOP
 	
 # Carrega a imagem1 (mapa1) no frame 0
 	
