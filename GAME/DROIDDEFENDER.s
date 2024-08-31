@@ -307,7 +307,7 @@ MOVE:  	li t0,0			# carrega 0 para t0
 	li t0,4  		# carrega 4 para t0
 	beq s3,t0,VRCO		# se s3 for igual a 4 (valor de movimento atual para a direita), vá para VRCO (verify right colision)
 	
-# Verifica a colisao do mapa (VLCO, VUCO, VDCO e VRCO carregam 5 pixels de detecção de colisão em cada direção, e VER verifica se algum desses pixels detectou uma colisão adiante)
+# Verifica a colisao do mapa (VLCO, VUCO, VDCO e VRCO carregam 5 ou 6 pixels de detecção de colisão em cada direção, e VER verifica se algum desses pixels detectou uma colisão adiante)
 
 #	   @7       @8          @9          @10         @11
 #	@6 #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  #  @12
