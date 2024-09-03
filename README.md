@@ -1,7 +1,7 @@
-# PacMan Assembly RISC-V
+# Droid Defender: Earth's Last Sentinel - RISC-V
 
 ## Description
-This project implements a game similar to PacMan using the Assembly programming language for the RISC-V architecture. The goal is to demonstrate the ability to develop a classic game in a low-level language, exploring the features of the RISC-V architecture.
+This project implements a game similar to PacMan using the Assembly programming language for the RISC-V architecture. The goal is to demonstrate the ability to develop a game in a low-level language, exploring the features of the RISC-V architecture.
 
 ## Features
 - Graphical interface (Bitmap Display, 320×240, 8 bits/pixel);
@@ -18,7 +18,7 @@ This project implements a game similar to PacMan using the Assembly programming 
 
 ## Prerequisites
 To run the game, you need:
-- A compatible RISC-V CPU simulator or emulator. ([FPGARS](https://leoriether.github.io/FPGRARS/) is recommended)
+- A compatible RISC-V CPU or emulator. ([FPGARS](https://leoriether.github.io/FPGRARS/) is included with the game)
 - A configured RISC-V Assembly development environment.
 
 ## Contribution
@@ -28,10 +28,10 @@ Contributions are welcome! Feel free to open issues to report bugs, suggest impr
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT) - see the [LICENSE](LICENSE) file for more details.
 
 ## Authors
-- Élvis Miranda (@neatzzy)
-- Gustavo Alves (@gusfring41)
-- Pedro Marcinoni (@Liferoijrm)
+- Élvis Miranda ([@neatzzy](https://github.com/neatzzy))
+- Gustavo Alves ([@gusfring41](https://github.com/gusfring41))
+- Pedro Marcinoni ([@Liferoijrm](https://github.com/Liferoijrm))
 
 ---
 
-Have fun playing PacMan in RISC-V Assembly! 🎮
+Have fun playing Droid Defender: Earth's Last Sentinel! 🎮
