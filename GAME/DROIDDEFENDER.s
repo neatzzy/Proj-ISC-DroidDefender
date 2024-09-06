@@ -39,6 +39,8 @@ POS_ROBOZINHO: .word 0xFF00B4C8 # endereco inicial da linha diretamente abaixo d
 
 .include "../DATA/mapa1.data"
 .include "../DATA/mapa1colisao.data"
+.include "../DATA/mapa2.data"
+.include "../DATA/mapa2colisao.data"
 .include "../DATA/menuprincipal.data"
 .include "../DATA/Robozinho1.data"
 .include "../DATA/Robozinho2.data"
