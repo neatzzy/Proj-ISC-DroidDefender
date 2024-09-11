@@ -125,10 +125,10 @@ LOOP:   li t2,0xFF200000	# carrega o endereÃ§o de controle do KDMMIO ("teclado
 	
 # Carrega a imagem1 (mapa1) no frame 0
 	
-IMG1:	la t4, mapa1		# t4 cerrega endereço do mapa a fim de comparação
+IMG1:	la t4, mapa2		# t4 cerrega endereço do mapa a fim de comparação
 	li s1,0xFF000000	# s1 = endereco inicial da Memoria VGA - Frame 0
 	li s2,0xFF012C00	# s2 = endereco final da Memoria VGA - Frame 0
-	la s0,mapa1		# s0 = endereço dos dados do mapa 1
+	la s0,mapa2		# s0 = endereço dos dados do mapa 1
 	mv t3, s0		# t3 = endereço inicial armazenado a fins de comparação
 	addi s0,s0,8		# s0 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
 	
@@ -188,7 +188,7 @@ IMG6:	li s1,0xFF008558	# s1 = endereco inicial da primeira linha do alien 4 - Fr
 	
 IMG7:	li s1,0xFF100000	# s1 = endereco inicial da Memoria VGA - Frame 1
 	li s2,0xFF112C00	# s2 = endereco final da Memoria VGA - Frame 1
-	la s0,mapa1colisao	# s0 = endereço dos dados da colisao do mapa 1
+	la s0,mapa2colisao	# s0 = endereço dos dados da colisao do mapa 1
 	mv t3, s0		# t3 = endereço inicial armazenado a fins de comparação
 	addi s0,s0,8		# s0 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
 	
