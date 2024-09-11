@@ -238,17 +238,17 @@ ENTER:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 
 SETUP_MAIN:
 
-	li s0,0			# s0 = 0 (zera o contador de movimentações do Robozinho)
+	li s0,2			# s0 = 0 (zera o contador de movimentações do Robozinho)
 	li s1,0			# s1 = 0 (zera o contador de pontos coletados)
 	li s2,3			# s2 = 3 (inicializa o contador de vidas do Robozinho com 3)
 	li s3,0			# s3 = 0 (zera o estado de movimentação atual do Robozinho)
 	li s5, 0		# s5 = 0 (zera o estado de persrguição dos aliens)
 	#li s6,
 	li s7,0			# s7 = 0 (zera o verificador de aliens)
-	li s4,0			# s4 = 0 (zera o estado de movimentação atual do inimigo1)
-	li s9,0			# s9 = 0 (zera o estado de movimentação atual do inmimigo2)
-	li s10,0 		# s10 = 0 (zera o estado de movimentação atual do inimigo3)
-	li s11,0 		# s11 = 0 (zera o estado de movimentação atual do inimigo4)
+	li s4,17		# s4 = 17 (zera o estado de movimentação atual do inimigo1 : chase_mode)
+	li s9,17		# s9 = 17 (zera o estado de movimentação atual do inmimigo2 : chase_mode)
+	li s10,17 		# s10 = 17 (zera o estado de movimentação atual do inimigo3 : chase_mode)
+	li s11,17 		# s11 = 17 (zera o estado de movimentação atual do inimigo4 : chase_mode)
 	
 # Loop principal do jogo (mostra pontuação na tela e verifica se ha teclas de movimentação pressionadas)
 
@@ -274,6 +274,7 @@ BLINKY:	li s7,1			# s7 = 1 (salva em s7 a informação de qual alien esta sendo mo
 	
 	mv a0, t1		# a0 = t1 (parametro da funçao CALCULO_TARGET)
 	mv a1, t2		# a1 = t2 (parametro da funçao CALCULO_TARGET)
+	mv a2, s4		# a2 = s4 (parametro da funçao CALCULO_TARGET)
 	
 	jal a7, CALCULO_TARGET 	# Pula para CALCULO_TARGET e guarda o retorno em a7
 	
@@ -294,6 +295,7 @@ PINK:	li s7,2			# s7 = 2 (salva em s7 a informação de qual alien esta sendo movi
 	
 	mv a0, t1		# a0 = t1 (parametro da funçao CALCULO_TARGET)
 	mv a1, t2		# a1 = t2 (parametro da funçao CALCULO_TARGET)
+	mv a2, s9		# a2 = s4 (parametro da funçao CALCULO_TARGET)
 	
 	jal a7, CALCULO_TARGET 	# Pula para CALCULO_TARGET e guarda o retorno em a7
 	
@@ -314,6 +316,8 @@ INKY:	li s7,3			# s7 = 3 (salva em s7 a informação de qual alien esta sendo movi
 	
 	mv a0, t1		# a0 = t1 (parametro da funçao CALCULO_TARGET)
 	mv a1, t2		# a1 = t2 (parametro da funçao CALCULO_TARGET)
+	mv a2, s10		# a2 = s4 (parametro da funçao CALCULO_TARGET)
+	
 	
 	jal a7, CALCULO_TARGET 	# Pula para CALCULO_TARGET e guarda o retorno em a7
 	
@@ -334,6 +338,7 @@ CLYDE:	li s7,4			# s7 = 4 (salva em s7 a informação de qual alien esta sendo mov
 	
 	mv a0, t1		# a0 = t1 (parametro da funçao CALCULO_TARGET)
 	mv a1, t2		# a1 = t2 (parametro da funçao CALCULO_TARGET)
+	mv a2, s11		# a2 = s4 (parametro da funçao CALCULO_TARGET)
 	
 	jal a7, CALCULO_TARGET 	# pula para CALCULO_TARGET e guarda o retorno em a7
 	
@@ -346,28 +351,34 @@ CLYDE:	li s7,4			# s7 = 4 (salva em s7 a informação de qual alien esta sendo mov
 # Função que calcula o target do alien com relação a posição do Robozinho
 # Calculo de distancia: distancia de manhattan : (|x_alien - x_target|) + (|y_alien - y_target|)
 
-#dependendo do estado do jogo o fantasma irá para o scatter(s5 = 0), chase(s5 = 1), ou frightened mode(s5 = 2)
+#dependendo do estado do jogo o fantasma irá para o scatter(Sx < 21), chase(Sx < 38), ou frightened mode(Sx < 55)
 
 CALCULO_TARGET:
 
 	
-	li t0, 180		 # troca de modos a cada 20 segundos
-	beq s0, t0, TROCOU_M   	 # se s0 = t0, então troca o modo(scatter->chase) ou (chase->scatter)
+	li t0, 179		 	# troca de modos a cada 20 segundos
+	rem t1, s0, t0			# t1 = s0%180
+	beq t1, zero, TROCAR_MODO  	# se t1 der 0, troca o modo
 	
-	li t0, 0
-	beq s5, t0, SCATTER_MODE # o alien está no scatter mode (o target sera um dos cantos do mapa a depender do alien)
-	j CHASE_MODE		 # o alien está no chase_mode (de alguma forma ele vai atrás do pac-man)
+	li t0, 21		 	# t0 = 21
+	blt a2, t0, SCATTER_MODE 	# se a2(Sx) < 21, está no scatter mode
+	li t0, 38
+	blt a2, t0, CHASE_MODE	 	# se a2(Sx) < 38, está no chase mode
+	li t0, 55
+	blt a2, t0, FRIGHTENED_MODE	 # se a2(Sx) < 55, está no frightened mode
+	
+TROCAR_MODO:
 
-TROCOU_M:
-	li s0,0			# s0 = 0 (zera o contador de movimentações do Robozinho)
-	li t0, 0
-	beq s5, t0, CHASE_MODE	 # o alien estava no scatter mode, então ele vai para o chase_mode (de alguma forma ele vai atrás do pac-man)
+	li t0, 21		 	# t0 = 21
+	blt a2, t0, CHASE_MODE   	# se a2(Sx) < 21, está no scatter mode, então vamos para o chase_mode
+	li t0, 38
+	blt a2, t0, SCATTER_MODE 	# se a2(Sx) < 38, está no chase mode, então vamos para o scatter_mode
 	
 # Inicia o scatter/chase mode e verifica qual e o alien a ser movimentado
 
 SCATTER_MODE: 
 	
-	li s5, 0			# scatter mode, logo s5 = 0
+	# registrador da movimentação é menor que 21, então foi para o scatter_mode
 
 	li t0,1				# t0 = 1
 	beq s7, t0, BLINKY_SCATTER	# se s7 = 1, então vai para BLINKY_SCATTER
@@ -383,7 +394,7 @@ SCATTER_MODE:
 	
 CHASE_MODE: 
 	
-	li s5, 1			# chase mode, logo s5 = 1
+	# registrador da movimentação é maior que 21 e menor que 38, então foi para o scatter_mode
 
 	li t0,1				# t0 = 1
 	beq s7, t0, BLINKY_CHASE	# se s7 = 1, então vai para BLINKY_CHASE
@@ -397,6 +408,9 @@ CHASE_MODE:
 	li t0,4				# t0 = 4
 	beq s7, t0, CLYDE_CHASE		# se s7 = 4, então vai para CLYDE_CHASE
 
+FRIGHTENED_MODE:
+	
+	# registrador da movimentação é maior que 38 e menor que 55, então foi para o scatter_mode
 	
 # Inicializa os dados do alien a ser movimentado (blinky) 
 	
@@ -404,6 +418,7 @@ BLINKY_SCATTER:			# target: canto superior direito
 	
 	li t4, 0xFF00013F	# t4 = endereço do target do Blinky
 	mv t6, s4		# t6 = movimentação do alien no presente
+	li s4, 17		# volta s4 para 17(a movimentação já esta guardada em t6 e o calculo irá adicionar em s4 posteriormente)
 	
 	la t0,POS_BLINKY	# carrega o endereço de "POS_BLINKY" no registrador t0
 	lw a4,0(t0)		# le a word guardada em "POS_BLINKY" para a4 (a4 = posição atual do Blinky)
@@ -418,6 +433,7 @@ BLINKY_CHASE:			# target: robozinho
 	
 	mv t4, t1		# t4 = endereço do target do Blinky(robozinho)	
 	mv t6, s4		# t6 = movimentação do alien no presente
+	li s4, 34		# volta s4 para 34(a movimentação já esta guardada em t6 e o calculo irá adicionar em s4 posteriormente)	
 	
 	la t0,POS_BLINKY	# carrega o endereço de "POS_BLINKY" no registrador t0
 	lw a4,0(t0)		# le a word guardada em "POS_BLINKY" para a4 (a4 = posição atual do Blinky)
@@ -431,6 +447,7 @@ PINK_SCATTER:			# target: canto superior esquerdo
 	
 	li t4, 0xFF000000	# t4 = endereço do target do Pink 
 	mv t6, s9		# t6 = movimentação do alien no presente
+	li s9, 17		# volta s9 para 17(a movimentação já esta guardada em t6 e o calculo irá adicionar em s9 posteriormente)
 	
 	la t0,POS_PINK		# carrega o endereço de "POS_PINK" no registrador t0
 	lw a4,0(t0)		# le a word guardada em "POS_PINK" para t1 (t1 = posição atual do Pink)
@@ -472,6 +489,7 @@ ADD_DIR:
 CONT_PINK:
 	mv t4, t1
 	mv t6, s9		# t6 = movimentação do alien no presente
+	li s9, 34		# volta s9 para 34(a movimentação já esta guardada em t6 e o calculo irá adicionar em s9 posteriormente)
 	
 	la t0,POS_PINK		# carrega o endereço de "POS_PINK" no registrador t0
 	lw a4,0(t0)		# le a word guardada em "POS_PINK" para t1 (t1 = posição atual do Pink)
@@ -486,6 +504,7 @@ INKY_SCATTER:			# target : canto inferior direito
 	
 	li t4, 0xFF012BFF	# t4 = endereço do target do Inky 
 	mv t6, s10		# t6 = movimentação do alien no presente
+	li s10, 17		# volta s10 para 17(a movimentação já esta guardada em t6 e o calculo irá adicionar em s10 posteriormente)
 	
 	la t0,POS_INKY		# carrega o endereço de "POS_INKY" no registrador t0
 	lw a4,0(t0)		# le a word guardada em "POS_INKY" para t1 (t1 = posição atual do Inky)
@@ -536,6 +555,7 @@ INKY_CHASE:			# target : "cerca" o robozinho baseado na posição do blinky
 	
 	mv t4, t0		# t4 = endereço do target do Inky	
 	mv t6, s10		# t6 = movimentação do alien no presente
+	li s10, 34		# volta s10 para 34(a movimentação já esta guardada em t6 e o calculo irá adicionar em s10 posteriormente)
 	
 	la t0,POS_INKY		# carrega o endereço de "POS_INKY" no registrador t0
 	lw a4,0(t0)		# le a word guardada em "POS_INKY" para t1 (t1 = posição atual do Inky)
@@ -551,6 +571,7 @@ INKY_CHASE:			# target : "cerca" o robozinho baseado na posição do blinky
 	
 	mv t4, t1		# t4 = endereço do target do Blinky(robozinho) 	
 	mv t6, s10		# t6 = movimentação do alien no presente
+	li s10, 34		# volta s10 para 34(a movimentação já esta guardada em t6 e o calculo irá adicionar em s10 posteriormente)
 	
 	la t0,POS_INKY		# carrega o endereço de "POS_INKY" no registrador t0
 	lw a4,0(t0)		# le a word guardada em "POS_INKY" para t1 (t1 = posição atual do Inky)
@@ -565,6 +586,7 @@ CLYDE_SCATTER:			# target: canto inferior esquerdo
 
 	li t4, 0xFF012B40	# t4 = endereço do target do Clyde
 	mv t6, s11		# t6 = movimentação do alien no presente
+	li s11, 17		# volta s11 para 17(a movimentação já esta guardada em t6 e o calculo irá adicionar em s11 posteriormente)
 	
 	la t0,POS_CLYDE		# carrega o endereço de "POS_CLYDE" no registrador t0
 	lw a4,0(t0)		# le a word guardada em "POS_CLYDE" para t1 (t1 = posição atual do Clyde)
@@ -604,6 +626,7 @@ CONT_CLYDE2:
 	
 	mv t4, t1		# t4 = endereço do target do Clyde(robozinho)
 	mv t6, s11		# t6 = movimentação do alien no presente
+	li s11, 34		# volta s11 para 34(a movimentação já esta guardada em t6 e o calculo irá adicionar em s11 posteriormente)
 	
 	la t0,POS_CLYDE		# carrega o endereço de "POS_CLYDE" no registrador t0
 	lw a4,0(t0)		# le a word guardada em "POS_CLYDE" para t1 (t1 = posição atual do Clyde)
@@ -614,7 +637,7 @@ CONT_CLYDE2:
 							
 RANDOM:
 
-	li t0, 69		# pega um numero aleatorio
+	mv t0, s0		# pega um numero aleatorio(contador)
 	li t2, 4		# t2 = 4
 	rem t1, t0, t2		# pega o resto pela divisao por 4 e armazena em t1
 	
@@ -642,6 +665,7 @@ TARGET_DL:
 SETUP_RANDOM:
 
 	mv t6, s11		# t6 = movimentação do alien no presente
+	li s11, 34		# volta s11 para 34(a movimentação já esta guardada em t6 e o calculo irá adicionar em s11 posteriormente)
 	
 	la t0,POS_CLYDE		# carrega o endereço de "POS_CLYDE" no registrador t0
 	lw a4,0(t0)		# le a word guardada em "POS_CLYDE" para t1 (t1 = posição atual do Clyde)
@@ -660,6 +684,9 @@ SETUP_RANDOM:
 # a6 : label do inimigo	
 	
 SETUP_TARGET:
+	
+	li t5, 17		# t5 = 17
+	rem t6, t6, t5		# t6 = resto de t6 por 17(t6 guardava a movimentação do alien antes de resetar para 17/34/51 e agora está setado para 0,1,2 ou 3)
 
 	li t1, 0xFF000000	# t1 = endereço base do Bitmap Display 
 	li t2, 320		# t2 = numero de colunas da tela
@@ -717,7 +744,7 @@ VERIF_MOV2:
 	li t2, 560		# carrega em t2 um valor grande para ele nao ir para baixo
 	
 VERIF_MOV:
-
+	
 	li t4, 0		# t4 = 0 significa que o alien está andando para cima		
 	beq t6, t4, N_BAIXO	# logo ele não pode ir pra baixo
 	addi t4, t4, 1		# t4 = 1 significa que o alien está andando para a esquerda	
@@ -1080,22 +1107,22 @@ FIM_MOV:
 BLINKY_MOV:
 	la t0, POS_BLINKY   	# carrega o endereço de "POS_ROBOZINHO" no registrador t0 
     	sw t1, 0(t0)       	# guarda a word armazenada em t1 (posição atual do Roboziho) em "POS_ROBOZINHO"
-    	mv s4, t4		# guarda o movimento atual do alien	
+    	add s4, s4 ,t4		# adiciona ao movimento do alien o movimento atual(ex.: s4 = 17 + t4)	
 	jalr x0, a7, 0		# volta para o loop dos aliens
 PINK_MOV:
 	la t0, POS_PINK   	# carrega o endereço de "POS_ROBOZINHO" no registrador t0 
     	sw t1, 0(t0)       	# guarda a word armazenada em t1 (posição atual do Roboziho) em "POS_ROBOZINHO"	
-    	mv s9, t4		# guarda o movimento atual do alien
+    	add s9, s9, t4		# adiciona ao movimento do alien o movimento atual(ex.: s9 = 17 + t4)
 	jalr x0, a7, 0		# volta para o loop dos aliens
 INKY_MOV:
 	la t0, POS_INKY   	# carrega o endereço de "POS_ROBOZINHO" no registrador t0 
     	sw t1, 0(t0)       	# guarda a word armazenada em t1 (posição atual do Roboziho) em "POS_ROBOZINHO"	
-    	mv s10, t4		# guarda o movimento atual do alien
+    	add s10, s10, t4	# adiciona ao movimento do alien o movimento atual(ex.: s10 = 17 + t4)
 	jalr x0, a7, 0		# volta para o loop dos aliens
 CLYDE_MOV:
 	la t0, POS_CLYDE   	# carrega o endereço de "POS_ROBOZINHO" no registrador t0 
     	sw t1, 0(t0)       	# guarda a word armazenada em t1 (posição atual do Roboziho) em "POS_ROBOZINHO"
-    	mv s11, t4		# guarda o movimento atual do alien
+    	add s11, s11, t4	# adiciona ao movimento do alien o movimento atual(ex.: s11 = 17 + t4)
 	jalr x0, a7, 0		# volta para o loop dos aliens
 	
 # Parte do codigo que lida com a movimentação do Robozinho
