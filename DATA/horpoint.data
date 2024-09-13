@@ -1,0 +1,4 @@
+horpoint: .word 4, 2
+.byte
+0,0,0,0
+0,0,0,0

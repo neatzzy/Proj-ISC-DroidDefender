@@ -1,0 +1,6 @@
+vertpoint: .word 2, 4
+.byte
+0,0
+0,0
+0,0
+0,0
