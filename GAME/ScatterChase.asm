@@ -281,7 +281,7 @@ BLINKY:	li s7,1			# s7 = 1 (salva em s7 a informação de qual alien esta sendo 
 	
 	mv a0, t1		# a0 = t1 (parametro da funçao CALCULO_TARGET)
 	mv a1, t2		# a1 = t2 (parametro da funçao CALCULO_TARGET)
-	mv a2, s4d v		# a2 = s4 (parametro da funçao CALCULO_TARGET)
+	mv a2, s4		# a2 = s4 (parametro da funçao CALCULO_TARGET)
 	
 	jal a7, CALCULO_TARGET 	# Pula para CALCULO_TARGET e guarda o retorno em a7
 	
