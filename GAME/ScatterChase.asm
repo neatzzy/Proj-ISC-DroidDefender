@@ -38,7 +38,7 @@ POS_PINK: .word 0xFF009BC8	# coordenada inicial do alien azul (pink)
 POS_INKY: .word 0xFF009BB8	# coordenada inicial do alien roxo (inky)
 POS_CLYDE: .word 0xFF009BD8	# coordenada inicial do alien laranja (clyde)
 
-TEMPO_JOGO: .word 0
+CONTADOR_ASSUSTADO: .word -1
 
 # inclusão das imagens 
 
@@ -54,6 +54,9 @@ TEMPO_JOGO: .word 0
 .include "Inimigo2.data"
 .include "Inimigo3.data"
 .include "Inimigo4.data"
+.include "InimigoAssustado.data"
+.include "horpoint.data"
+.include "vertpoint.data"
 
 .text
 
@@ -278,7 +281,7 @@ BLINKY:	li s7,1			# s7 = 1 (salva em s7 a informação de qual alien esta sendo 
 	
 	mv a0, t1		# a0 = t1 (parametro da funçao CALCULO_TARGET)
 	mv a1, t2		# a1 = t2 (parametro da funçao CALCULO_TARGET)
-	mv a2, s4		# a2 = s4 (parametro da funçao CALCULO_TARGET)
+	mv a2, s4d v		# a2 = s4 (parametro da funçao CALCULO_TARGET)
 	
 	jal a7, CALCULO_TARGET 	# Pula para CALCULO_TARGET e guarda o retorno em a7
 	
@@ -359,9 +362,8 @@ CLYDE:	li s7,4			# s7 = 4 (salva em s7 a informação de qual alien esta sendo m
 
 CALCULO_TARGET:
 
-	
 	li t0, 179		 	# troca de modos a cada 20 segundos
-	rem t1, s0, t0			# t1 = s0%180
+	rem t1, s0, t0			# t1 = s0%179
 	beq t1, zero, TROCAR_MODO  	# se t1 der 0, troca o modo
 	
 	li t0, 21		 	# t0 = 21
@@ -369,14 +371,52 @@ CALCULO_TARGET:
 	li t0, 38
 	blt a2, t0, CHASE_MODE	 	# se a2(Sx) < 38, está no chase mode
 	li t0, 55
-	blt a2, t0, FRIGHTENED_MODE	 # se a2(Sx) < 55, está no frightened mode
+	blt a2, t0, FRIGHTENED_VERIF	 # se a2(Sx) < 55, está no frightened mode
+	li t0, 72
+	blt a2, t0, DEATH_MODE		# se a2(Sx) < 72, estã no death mode
 	
 TROCAR_MODO:
 
 	li t0, 21		 	# t0 = 21
-	blt a2, t0, CHASE_MODE   	# se a2(Sx) < 21, está no scatter mode, então vamos para o chase_mode
+	blt a2, t0, CHASE_MODE   	# se a2(Sx) < 21, está no scatter mode, então vamos para o chase_mode(MUDARDEPOIS)
 	li t0, 38
 	blt a2, t0, SCATTER_MODE 	# se a2(Sx) < 38, está no chase mode, então vamos para o scatter_mode
+	li t0, 58	
+	blt a2, t0, FRIGHTENED_VERIF    # se a2(Sx) < 38, está no frightened mode, então não muda
+	li t0, 72	
+	blt a2, t0, DEATH_MODE		# se a2(Sx) < 72, está no death mode, então não muda
+	
+FRIGHTENED_VERIF:
+
+	la t0, CONTADOR_ASSUSTADO	# carrega o valor de "CONTADOR_ASSUSTADO" no registrador t0	
+	lw t1, 0(t0)			# le a word guardada em "CONTADOR_ASSUSTADO" para t1 (t1 = contador do tempo no frightened_mode)
+	
+	li t2, 400			# seta para o loop durar 8 segundos
+	blt t1, t2, FRIGHTENED_MODE	# se for menor que 200, continua no frightened mode
+	
+	li t1, -1			# t1 = -1
+	sw t1, 0(t0)			# reseta o contador_assustado = -1
+	
+	li t0, 17			# t0 = 17
+	rem t1, s4, t0			# t1 = s4%17
+	li s4, 34			# reseta s4 para o chase_mode
+	add s4, s4, t1			# e atualiza o mivimento dele anterior 
+	
+	rem t1, s9, t0			# t1 = s9%17
+	li s9, 34			# reseta s9 para o chase_mode
+	add s9, s9, t1			# e atualiza o mivimento dele anterior 
+	
+	rem t1, s10, t0			# t1 = s10%17
+	li s10, 34			# reseta s10 para o chase_mode
+	add s10, s10, t1		# e atualiza o mivimento dele anterior 
+	
+	rem t1, s11, t0			# t1 = s11%17
+	li s11, 34			# reseta s11 para o chase_mode
+	add s11, s11, t1		# e atualiza o mivimento dele anterior 
+	
+	li s0, 2			# reseta o contador s0 para temporizar certo o chase_mode
+	
+	j CHASE_MODE			# volta para o chase_mode
 	
 # Inicia o scatter/chase mode e verifica qual e o alien a ser movimentado
 
@@ -414,8 +454,44 @@ CHASE_MODE:
 
 FRIGHTENED_MODE:
 	
-	# registrador da movimentação é maior que 38 e menor que 55, então foi para o scatter_mode
+	# registrador da movimentação é maior que 38 e menor que 55, então foi para o frightened_mode
+		
+	addi t1, t1, 1			# adiciona 1 ao contador
+	sw t1, 0(t0)			# atualiza o valor de CONTADOR_ASSUSTADO
 	
+	li t0,1				# t0 = 1
+	beq s7, t0, BLINKY_FRIGHTENED	# se s7 = 1, então vai para BLINKY_CHASE
+	
+	li t0,2				# t0 = 2
+	beq s7, t0, PINK_FRIGHTENED	# se s7 = 2, então vai para PINK_CHASE
+	
+	li t0,3				# t0 = 3
+	beq s7, t0, INKY_FRIGHTENED	# se s7 = 3, então vai para INKY_CHASE
+	
+	li t0,4				# t0 = 4
+	beq s7, t0, CLYDE_FRIGHTENED	# se s7 = 4, então vai para CLYDE_CHASE
+	
+DEATH_MODE:
+
+	li t0,1				# t0 = 1
+	beq s7, t0, BLINKY_DEATH	# se s7 = 1, então vai para BLINKY_CHASE
+	
+	li t0,2				# t0 = 2
+	beq s7, t0, PINK_DEATH		# se s7 = 2, então vai para PINK_CHASE
+	
+	li t0,3				# t0 = 3
+	beq s7, t0, INKY_DEATH		# se s7 = 3, então vai para INKY_CHASE
+	
+	li t0,4				# t0 = 4
+	beq s7, t0, CLYDE_DEATH		# se s7 = 4, então vai para CLYDE_CHASE
+	
+	
+# parametros necessarios:
+# t4: endereço do target
+# t6 : estado de movimentação atual do alien
+# a4 : posição hexa do alien
+# a6 : label do inimigo	
+
 # Inicializa os dados do alien a ser movimentado (blinky) 
 	
 BLINKY_SCATTER:			# target: canto superior direito
@@ -438,6 +514,77 @@ BLINKY_CHASE:			# target: robozinho
 	mv t4, t1		# t4 = endereço do target do Blinky(robozinho)	
 	mv t6, s4		# t6 = movimentação do alien no presente
 	li s4, 34		# volta s4 para 34(a movimentação já esta guardada em t6 e o calculo irá adicionar em s4 posteriormente)	
+	
+	la t0,POS_BLINKY	# carrega o endereço de "POS_BLINKY" no registrador t0
+	lw a4,0(t0)		# le a word guardada em "POS_BLINKY" para a4 (a4 = posição atual do Blinky)
+	
+	la a6, Inimigo1		# a6 = label da imagem a ser impressa (parametro da função de movimentação)
+	j SETUP_TARGET		# pula para o setup do scatter_mode
+	
+BLINKY_FRIGHTENED:		# target: aleatório(exceto no primeiro movimento que inverte a direção do alien)
+
+	la t0,POS_BLINKY	# carrega o endereço de "POS_BLINKY" no registrador t0
+	lw a4,0(t0)		# le a word guardada em "POS_BLINKY" para a4 (a4 = posição atual do Blinky)
+	
+	mv t4, a4		# t4 = a4(endereço futuro do target)		
+
+	li t0, 179		# t0 = 179
+	rem t1, s0, t0		# t1 = s0%179
+	beq t1, zero, INVERTE_B	# se esta no primeiro segundo do movimento, inverte a direção do alien, se não, ve um movimento aleatório para ele
+	
+	li t0, 823		# t0 = 823(numero grande primo)
+	mul t0, s0, t0		# t0 = s0*t0
+	li t1, 4		# t1 = 4
+	rem t1, t0, t1		# t1 = t0%t1
+	
+	li t0, 0		# t0 = 0(up)
+	beq t1, t0, UP_BLINKY # se t1 = 0, então o blinky vai pra cima
+	addi t0, t0, 1		# t0 = 1(left)
+	beq t1, t0, ESQ_BLINKY  # se t1 = 1, então o blinky vai pra esquerda
+	addi t0, t0, 1		# t0 = 2(down)
+	beq t1, t0, DOWN_BLINKY   # se t1 = 2, então o blinky vai pra baixo
+	addi t0, t0, 1		# t0 = 3(right)
+	beq t1, t0, DIR_BLINKY   # se t1 = 3, então o blinky vai pra direita	
+	
+INVERTE_B:
+	li t0, 17		# t0 = 17
+	rem t1,s4, t0		# t1 = s4%17
+	li t0, 0		# t0 = 0(up)
+	beq t1, t0, DOWN_BLINKY # se t1 = 0, então o blinky está indo pra cima, logo ele inverte e va pra baixo(DOWN_BLINKY)
+	addi t0, t0, 1		# t0 = 1(left)
+	beq t1, t0, DIR_BLINKY  # se t1 = 1, então o blinky está indo pra esquerda, logo ele inverte e va pra baixo(DIR_BLINKY)
+	addi t0, t0, 1		# t0 = 2(down)
+	beq t1, t0, UP_BLINKY   # se t1 = 2, então o blinky está indo pra baixo, logo ele inverte e va pra baixo(UP_BLINKY)
+	addi t0, t0, 1		# t0 = 3(right)
+	beq t1, t0, UP_BLINKY   # se t1 = 3, então o blinky está indo pra direita, logo ele inverte e va pra baixo(ESQ_BLINKY)
+
+UP_BLINKY:
+	li t0, 5120		# t0 = 5120
+	sub t4, t4, t0		# t4 = t4 - 5120
+	j SETUP_FRIGHTENED_BLINKY
+ESQ_BLINKY:
+	addi t4, t4, -16	# t4 = t4 - 16
+	j SETUP_FRIGHTENED_BLINKY
+DOWN_BLINKY:
+	li t0, 5120		# t0 = 5120
+	add t4, t4, t0		# t4 = t4 + 5120
+	j SETUP_FRIGHTENED_BLINKY
+DIR_BLINKY:
+	addi t4, t4, 16		# t4 = t4 + 16
+	
+SETUP_FRIGHTENED_BLINKY:
+
+	la a6, InimigoAssustado	# a6 = label da imagem a ser impressa (parametro da função de movimentação)
+	mv t6, s4		# t6 = movimentação do alien no presente
+	li s4, 51		# volta s4 para 51(a movimentação já esta guardada em t6 e o calculo irá adicionar em s4 posteriormente)
+	
+	j SETUP_TARGET		
+	
+BLINKY_DEATH: 			# target: dentro da caixa
+	
+	li t4, 0xFF009BC8	# t4 = endereço do target do Blinky(caixa)
+	mv t6, s4		# t6 = movimentação do alien no presente
+	li s4, 68		# volta s4 para 68(a movimentação já esta guardada em t6 e o calculo irá adicionar em s4 posteriormente)
 	
 	la t0,POS_BLINKY	# carrega o endereço de "POS_BLINKY" no registrador t0
 	lw a4,0(t0)		# le a word guardada em "POS_BLINKY" para a4 (a4 = posição atual do Blinky)
@@ -477,18 +624,18 @@ PINK_CHASE:			# target: frente do robozinho (s3 = 1  esq) (s3 = 2 cima/esquerda)
 	jal CONT_PINK		# se o robozinho nao esta se movendo, ele vai diretamente até a posição dele
 
 ADD_ESQ:
-	addi t1, t1, -16	# t1 = t1 - (16*4) 
+	addi t1, t1, -16	# t1 = t1 - (16) 
 	jal CONT_PINK
 ADD_CIMA:
 	li t0, 5120			
-	sub t1, t1, t0		# t1 = t1 - 5120*4
+	sub t1, t1, t0		# t1 = t1 - 5120
 	jal CONT_PINK	
 ADD_BAIXO:
 	li t0, 5120
 	add t1, t1, t0		# t1 = t1 + 5120
 	jal CONT_PINK
 ADD_DIR:
-	addi t1, t1, 16		# t1 = t1 + 16*4 
+	addi t1, t1, 16		# t1 = t1 + 16 
 	
 CONT_PINK:
 	
@@ -515,6 +662,78 @@ CONT_2_PINK:
 	la a6, Inimigo2		# a6 = label da imagem a ser impressa (parametro da função de movimentação)
 	
 	j SETUP_TARGET		# pula para o setup do scatter_mode
+	
+PINK_FRIGHTENED:		# target: aleatório(exceto no primeiro movimento que inverte a direção do alien)
+
+	la t0,POS_PINK		# carrega o endereço de "POS_PINK" no registrador t0
+	lw a4,0(t0)		# le a word guardada em "POS_PINK" para a4 (a4 = posição atual do PINK)
+	
+	mv t4, a4		# t4 = a4(endereço futuro do target)		
+
+	li t0, 179		# t0 = 179
+	rem t1, s0, t0		# t1 = s0%179
+	beq t1, zero, INVERTE_P	# se esta no primeiro segundo do movimento, inverte a direção do alien, se não, ve um movimento aleatório para ele
+	
+	li t0, 821		# t0 = 821(numero grande primo)
+	mul t0, s0, t0		# t0 = s0*t0
+	li t1, 4		# t1 = 4
+	rem t1, t0, t1		# t1 = t0%t1
+	
+	li t0, 0		# t0 = 0(up)
+	beq t1, t0, UP_PINK 	# se t1 = 0, então o pink vai pra cima
+	addi t0, t0, 1		# t0 = 1(left)
+	beq t1, t0, ESQ_PINK    # se t1 = 1, então o pink vai pra esquerda
+	addi t0, t0, 1		# t0 = 2(down)
+	beq t1, t0, DOWN_PINK   # se t1 = 2, então o pink vai pra baixo
+	addi t0, t0, 1		# t0 = 3(right)
+	beq t1, t0, DIR_PINK    # se t1 = 3, então o pink vai pra direita	
+	
+INVERTE_P:
+	li t0, 17		# t0 = 17
+	rem t1, s9, t0		# t1 = s9%17
+	li t0, 0		# t0 = 0(up)
+	beq t1, t0, DOWN_PINK # se t1 = 0, então o pink está indo pra cima, logo ele inverte e va pra baixo(DOWN_PINK)
+	addi t0, t0, 1		# t0 = 1(left)
+	beq t1, t0, DIR_PINK  # se t1 = 1, então o pink está indo pra esquerda, logo ele inverte e va pra baixo(DIR_PINK)
+	addi t0, t0, 1		# t0 = 2(down)
+	beq t1, t0, UP_PINK   # se t1 = 2, então o pink está indo pra baixo, logo ele inverte e va pra baixo(UP_PINK)
+	addi t0, t0, 1		# t0 = 3(right)
+	beq t1, t0, ESQ_PINK   # se t1 = 3, então o pink está indo pra direita, logo ele inverte e va pra baixo(ESQ_PINK)
+
+UP_PINK:
+	li t0, 5120		# t0 = 5120
+	sub t4, t4, t0		# t4 = t4 - 5120
+	j SETUP_FRIGHTENED_PINK
+ESQ_PINK:
+	addi t4, t4, -64	# t4 = t4 - 64
+	j SETUP_FRIGHTENED_PINK
+DOWN_PINK:
+	li t0, 5120		# t0 = 5120
+	add t4, t4, t0		# t4 = t4 + 5120
+	j SETUP_FRIGHTENED_PINK
+DIR_PINK:
+	addi t4, t4, 64		# t4 = t4 + 64
+	
+SETUP_FRIGHTENED_PINK:
+
+	la a6, InimigoAssustado	# a6 = label da imagem a ser impressa (parametro da função de movimentação)
+	mv t6, s9		# t6 = movimentação do alien no presente
+	li s9, 51		# volta s4 para 51(a movimentação já esta guardada em t6 e o calculo irá adicionar em s4 posteriormente)
+	
+	j SETUP_TARGET	
+	
+PINK_DEATH:			# target: dentro da caixa
+	
+	li t4, 0xFF009BC8	# t4 = endereço do target do Pink(caixa) 
+	mv t6, s9		# t6 = movimentação do alien no presente
+	li s9, 68		# volta s9 para 68(a movimentação já esta guardada em t6 e o calculo irá adicionar em s9 posteriormente)
+	
+	la t0,POS_PINK		# carrega o endereço de "POS_PINK" no registrador t0
+	lw a4,0(t0)		# le a word guardada em "POS_PINK" para t1 (t1 = posição atual do Pink)
+	
+	la a6, Inimigo2		# a6 = label da imagem a ser impressa (parametro da função de movimentação)
+	
+	j SETUP_TARGET		# pula para o setup do scatter_mode	
 	
 # Inicializa os dados do alien a ser movimentado (inky) 
 
@@ -590,6 +809,78 @@ INKY_CHASE:			# target : "cerca" o robozinho baseado na posição do blinky
 	mv t4, t1		# t4 = endereço do target do Blinky(robozinho) 	
 	mv t6, s10		# t6 = movimentação do alien no presente
 	li s10, 34		# volta s10 para 34(a movimentação já esta guardada em t6 e o calculo irá adicionar em s10 posteriormente)
+	
+	la t0,POS_INKY		# carrega o endereço de "POS_INKY" no registrador t0
+	lw a4,0(t0)		# le a word guardada em "POS_INKY" para t1 (t1 = posição atual do Inky)
+	
+	la a6, Inimigo3		# a6 = label da imagem a ser impressa (parametro da função de movimentação)
+	
+	j SETUP_TARGET		# pula para o setup do scatter_mode
+	
+INKY_FRIGHTENED:		# target: aleatório(exceto no primeiro movimento que inverte a direção do alien)
+
+	la t0,POS_INKY		# carrega o endereço de "POS_INKY" no registrador t0
+	lw a4,0(t0)		# le a word guardada em "POS_INKY" para a4 (a4 = posição atual do INKY)
+	
+	mv t4, a4		# t4 = a4(endereço futuro do target)		
+
+	li t0, 179		# t0 = 179
+	rem t1, s0, t0		# t1 = so%179
+	beq t1, zero, INVERTE_I	# se esta no primeiro segundo do movimento, inverte a direção do alien, se não, ve um movimento aleatório para ele
+	
+	li t0, 811		# t0 = 811(numero grande primo)
+	mul t0, s0, t0		# t0 = s0*t0
+	li t1, 4		# t1 = 4
+	rem t1, t0, t1		# t1 = t0%t1
+	
+	li t0, 0		# t0 = 0(up)
+	beq t1, t0, UP_INKY 	# se t1 = 0, então o inky vai pra cima
+	addi t0, t0, 1		# t0 = 1(left)
+	beq t1, t0, ESQ_INKY    # se t1 = 1, então o inky vai pra esquerda
+	addi t0, t0, 1		# t0 = 2(down)
+	beq t1, t0, DOWN_INKY   # se t1 = 2, então o inky vai pra baixo
+	addi t0, t0, 1		# t0 = 3(right)
+	beq t1, t0, DIR_INKY    # se t1 = 3, então o inky vai pra direita	
+	
+INVERTE_I:
+	li t0, 17		# t0 = 17
+	rem t1,s10, t0		# t1 = s10%17
+	li t0, 0		# t0 = 0(up)
+	beq t1, t0, DOWN_INKY   # se t1 = 0, então o inky está indo pra cima, logo ele inverte e va pra baixo(DOWN_INKY)
+	addi t0, t0, 1		# t0 = 1(left)
+	beq t1, t0, DIR_INKY    # se t1 = 1, então o inky está indo pra esquerda, logo ele inverte e va pra baixo(DIR_INKY)
+	addi t0, t0, 1		# t0 = 2(down)
+	beq t1, t0, UP_INKY     # se t1 = 2, então o inky está indo pra baixo, logo ele inverte e va pra baixo(UP_INKY)
+	addi t0, t0, 1		# t0 = 3(right)
+	beq t1, t0, ESQ_INKY     # se t1 = 3, então o inky está indo pra direita, logo ele inverte e va pra baixo(ESQ_INKY)
+
+UP_INKY:
+	li t0, 5120		# t0 = 5120
+	sub t4, t4, t0		# t4 = t4 - 5120
+	j SETUP_FRIGHTENED_INKY
+ESQ_INKY:
+	addi t4, t4, -64	# t4 = t4 - 64
+	j SETUP_FRIGHTENED_INKY
+DOWN_INKY:
+	li t0, 5120		# t0 = 5120
+	add t4, t4, t0		# t4 = t4 + 5120
+	j SETUP_FRIGHTENED_INKY
+DIR_INKY:
+	addi t4, t4, 64		# t4 = t4 + 64
+	
+SETUP_FRIGHTENED_INKY:
+
+	la a6, InimigoAssustado	# a6 = label da imagem a ser impressa (parametro da função de movimentação)
+	mv t6, s10		# t6 = movimentação do alien no presente
+	li s10, 51		# volta s4 para 51(a movimentação já esta guardada em t6 e o calculo irá adicionar em s4 posteriormente)
+	
+	j SETUP_TARGET		
+	
+INKY_DEATH:			# target : dentro da caixa
+	
+	li t4, 0xFF009BC8	# t4 = endereço do target do Inky(caixa)
+	mv t6, s10		# t6 = movimentação do alien no presente
+	li s10, 68		# volta s10 para 68(a movimentação já esta guardada em t6 e o calculo irá adicionar em s10 posteriormente)
 	
 	la t0,POS_INKY		# carrega o endereço de "POS_INKY" no registrador t0
 	lw a4,0(t0)		# le a word guardada em "POS_INKY" para t1 (t1 = posição atual do Inky)
@@ -694,6 +985,75 @@ SETUP_RANDOM:
 	la a6, Inimigo4		# a6 = label da imagem a ser impressa (parametro da função de movimentação)
 	j SETUP_TARGET		# pula para o setup do scatter_mode
 	
+CLYDE_FRIGHTENED:		# target: aleatório(exceto no primeiro movimento que inverte a direção do alien)
+
+	la t0,POS_CLYDE		# carrega o endereço de "POS_CLYDE" no registrador t0
+	lw a4,0(t0)		# le a word guardada em "POS_CLYDE" para a4 (a4 = posição atual do CLYDE)
+	
+	mv t4, a4		# t4 = a4(endereço futuro do target)		
+
+	li t0, 179		# t0 = 179
+	rem t1, s0, t0		# t1 = so%179
+	beq t1, zero, INVERTE_C	# se esta no primeiro segundo do movimento, inverte a direção do alien, se não, ve um movimento aleatório para ele
+	
+	li t0, 811		# t0 = 809(numero grande primo)
+	mul t0, s0, t0		# t0 = s0*t0
+	li t1, 4		# t1 = 4
+	rem t1, t0, t1		# t1 = t0%t1
+	
+	li t0, 0		# t0 = 0(up)
+	beq t1, t0, UP_CLYDE 	# se t1 = 0, então o clyde vai pra cima
+	addi t0, t0, 1		# t0 = 1(left)
+	beq t1, t0, ESQ_CLYDE   # se t1 = 1, então o clyde vai pra esquerda
+	addi t0, t0, 1		# t0 = 2(down)
+	beq t1, t0, DOWN_CLYDE  # se t1 = 2, então o clyde vai pra baixo
+	addi t0, t0, 1		# t0 = 3(right)
+	beq t1, t0, DIR_CLYDE   # se t1 = 3, então o clyde vai pra direita	
+	
+INVERTE_C:
+	li t0, 17		# t0 = 17
+	rem t1,s11, t0		# t1 = s11%17
+	li t0, 0		# t0 = 0(up)
+	beq t1, t0, DOWN_CLYDE  # se t1 = 0, então o clyde está indo pra cima, logo ele inverte e va pra baixo(DOWN_CLYDE)
+	addi t0, t0, 1		# t0 = 1(left)
+	beq t1, t0, DIR_CLYDE   # se t1 = 1, então o clyde está indo pra esquerda, logo ele inverte e va pra baixo(DIR_CLYDE)
+	addi t0, t0, 1		# t0 = 2(down)
+	beq t1, t0, UP_CLYDE    # se t1 = 2, então o clyde está indo pra baixo, logo ele inverte e va pra baixo(UP_CLYDE)
+	addi t0, t0, 1		# t0 = 3(right)
+	beq t1, t0, ESQ_CLYDE   # se t1 = 3, então o clyde está indo pra direita, logo ele inverte e va pra baixo(ESQ_CLYDE)
+
+UP_CLYDE:
+	li t0, 5120		# t0 = 5120
+	sub t4, t4, t0		# t4 = t4 - 5120
+	j SETUP_FRIGHTENED_CLYDE
+ESQ_CLYDE:
+	addi t4, t4, -64	# t4 = t4 - 64
+	j SETUP_FRIGHTENED_CLYDE
+DOWN_CLYDE:
+	li t0, 5120		# t0 = 5120
+	add t4, t4, t0		# t4 = t4 + 5120
+	j SETUP_FRIGHTENED_CLYDE
+DIR_CLYDE:
+	addi t4, t4, 64		# t4 = t4 + 64
+	
+SETUP_FRIGHTENED_CLYDE:
+
+	la a6, InimigoAssustado	# a6 = label da imagem a ser impressa (parametro da função de movimentação)
+	mv t6, s11		# t6 = movimentação do alien no presente
+	li s11, 51		# volta s4 para 51(a movimentação já esta guardada em t6 e o calculo irá adicionar em s4 posteriormente)
+	j SETUP_TARGET
+	
+CLYDE_DEATH:			# target: dentro da caixa
+
+	li t4, 0xFF009BC8	# t4 = endereço do target do Clyde(caixa)
+	mv t6, s11		# t6 = movimentação do alien no presente
+	li s11, 68		# volta s11 para 68(a movimentação já esta guardada em t6 e o calculo irá adicionar em s11 posteriormente)
+	
+	la t0,POS_CLYDE		# carrega o endereço de "POS_CLYDE" no registrador t0
+	lw a4,0(t0)		# le a word guardada em "POS_CLYDE" para t1 (t1 = posição atual do Clyde)
+	
+	la a6, Inimigo4		# a6 = label da imagem a ser impressa (parametro da função de movimentação)
+	
 # Inicializa os dados para o scatter mode, no qual sera calculado o caminho mais curto ate o target (|a0 - t4| + |a1 - t5|) = (|x_alien - x_target|) + (|y_alien - y_target|)
 
 # Função que calcula o target do alien com relação a posição do Robozinho
@@ -706,7 +1066,7 @@ SETUP_RANDOM:
 # a6 : label do inimigo	
 	
 SETUP_TARGET:
-	
+
 	li t5, 17		# t5 = 17
 	rem t6, t6, t5		# t6 = resto de t6 por 17(t6 guardava a movimentação do alien antes de resetar para 17/34/51 e agora está setado para 0,1,2 ou 3)
 
@@ -737,9 +1097,22 @@ SETUP_TARGET:
 	jal ra, LOOP_TARGET 	# calcula a distancia de manhattan entre o target e a direção esquerda do alien e retorna em a2
 	mv t3, a2		# guarda em t1 a distancia entre target e a posição a direita do alien
 	
-	addi a0, a0, -4		# volta a0 para a posição original	
+	addi a0, a0, -4		# volta a0 para a posição original
 	
-#	li t4, 116		#verifica se o alien está dentro da caixa(caso esteja, ele nao pode ir para baixo)
+	la t5, CONTADOR_ASSUSTADO	# le o CONTADOR_ASSUSTADO
+	lw t4, 0(t5)		# carrega em t4 o valor do CONTADOR_ASSUSTADO 
+	
+	li t5, 0		# t5 = 0(primeiro loop do blinky no frightened mode)
+	bge t4, t5, VERIF_MODE	# se ele estiver no modo assustado, verifica se ele está em um dos primeiros ticks do fantasma no modo assustado
+	j CONT_TARGET
+	
+VERIF_MODE:
+	li t5, 4		# te = 4(proximo tick do primeiro alien)
+	blt t4, t5, MENOR	# se sim, então ele pode virar 180 graus
+	
+CONT_TARGET:
+	
+#	li t4, 116		# verifica se o alien está dentro da caixa(caso esteja, ele nao pode ir para baixo)
 #	beq a1, t4, VERIF_MOV1  # se ele estiver na linha da caixa, vamos ver se ele está entre as colunas
 	
 	li t4, 96		#verifica se o alien está logo em cima da caixa(caso esteja, ele nao pode ir para cima)
@@ -1528,6 +1901,8 @@ VERP:	add t1,t1,t2		# t1 = t1 + offset (pula para o pixel seguinte da linha\colu
 	lbu t4,0(t1)		# carrega em t4 um byte do endereço t1 (cor do pixel de t1)
 	li t5,63		# t5 = 63 (cor amarela)
 	beq t4,t5,PONTO		# se t4 = 63, vá para PONTO (atualiza o contador de pontos e termina a busca por pontos a serem coletados)
+	li t5,127
+	beq t4,t5,SPRPNT
 	beq t1,t0,NXTLINE	# se t1 = t0, vá para NXTLINE (se o endereço analisado for o último da linha/coluna, pule para a linha/coluna seguinte)
 	j VERP			# pule para VERP (se nenhum ponto foi detectado, volte para o início do loop)
 	
@@ -1663,6 +2038,225 @@ DELRGHT:addi t1,t1,1		# t1 = t1 + 1 (carrega o endereço do pixel inferior direi
 	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa1 no segmento de dados)
 	
 	j DELETE 		# pule para DELETE
+	
+SPRPNT:	addi s1,s1,1		# incrementa o contador de pontos (a sessão a seguir toca uma triade de mi maior para cada ponto coletado)
+	
+	li t0,17
+	rem t3,s4,t0
+	li s4, 51
+	add s4,s4,t3
+	
+	li t0,17
+	rem t3,s9,t0
+	li s9, 51
+	add s9,s9,t3
+	
+	li t0,17
+	rem t3,s10,t0
+	li s10, 51
+	add s10,s10,t3
+	
+	li t0,17
+	rem t3,s11,t0
+	li s11, 51
+	add s11,s11,t3
+	
+	li a0,68		# a0 = 68 (carrega sol sustenido para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,35		# a2 = 35 (timbre "electric bass")
+	li a3,50		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,71		# a0 = 71 (carrega si para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,50		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,76		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,50		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li t3,1			# carrega 1 para t3
+  	beq s3,t3,DELLFTS	# se s3 for igual a 1 (valor de movimento atual para a esquerda), vá para DELLFT
+  	
+  	li t3,2			# carrega 2 para t3
+  	beq s3,t3,DELUPS		# se s3 for igual a 2 (valor de movimento atual para cima), vá para DELUP
+  	
+  	li t3,3  		# carrega 3 para t3
+	beq s3,t3,DELDWNS	# se s3 for igual a 3 (valor de movimento atual para baixo), vá para DELDWN
+	
+	li t3,4  		# carrega 4 para t3
+	beq s3,t3,DELRGHTS	# se s3 for igual a 4 (valor de movimento atual para a direita), vá para DELRGHT
+	
+DELLFTS: 
+	addi t1,t1,-3		# t1 = t1 - 1 (carrega o endereço do pixel inferior esquerdo do ponto detectado)
+	la t3,vertpoint		# carrega a imagem que vai sobrepor o robozinho com pixels pretos
+	addi t3,t3,8		# t3 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
+
+	li t5,0	
+	li t6,4			# reinicia o contador para 16 quebras de linha
+	
+	li t4,960		# t4 = 5120
+	sub t1,t1,t4		# volta t1 16 linhas (pixel inicial da primeira linha)
+	mv t2,t1 		# t2 = POS_ROBOZINHO	
+	addi t2,t2,2		# t2 = POS_ROBOZINHO + 16 (pixel final da primeira linha)
+	
+	mv t0,t1		# t0 = t1
+	li t4,0xFF000000	# t4 = 0xFF000000 (carrega em t4 o endereço base da memoria VGA)
+	sub t0,t0,t4		# t0 = t0 - 0xFF000000 (subtrai o endereço base de t0, posição atual do Robozinho)
+	li t4,1
+	beq s6,t4,LOAD1L
+	la t4,mapa2
+	j LOAD2L
+LOAD1L:	la t4,mapa1		# carrega em t4 o endereço dos dados do mapa1
+LOAD2L:	addi t4,t4,8		# t4 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
+	add t4,t4,t0		# t4 = t4 + t0 (carrega em t4 o endereço do pixel do mapa1 no segmento de dados sobre o qual o Robozinho esta localizado)
+	
+	
+DELLOOPL:beq t1,t2,ENTER2L	# se t1 atingir o fim da linha de pixels, quebre linha
+	lb t0,0(t3)		# le um byte de "Robozinho1preto" para t0
+	sb t0,0(t1)		# escreve o byte (pixel preto\invisivel) na memória VGA
+	sb t0,0(t4)
+	
+	addi t1,t1,1		# soma 1 ao endereço t1
+	addi t3,t3,1		# soma 1 ao endereço t3
+	addi t4,t4,1		# soma 1 ao endereço t4
+	j DELLOOPL		# volta a verificar a condiçao do loop
+	
+ENTER2L:addi t1,t1,318		# t1 pula para o pixel inicial da linha de baixo na memoria VGA
+	addi t4,t4,318		# t4 pula para o pixel inicial da linha de baixo no segmento de dados
+	addi t2,t2,320		# t2 pula para o pixel final da linha de baixo na memoria VGA
+	addi t5,t5,1          	# atualiza o contador de quebras de linha
+	beq t5,t6,DELETE	# termina o carregamento da imagem se 16 quebras de linha ocorrerem
+	j DELLOOPL		# pula para delloop
+	
+DELUPS:	la t3,horpoint		# carrega a imagem que vai sobrepor o robozinho com pixels pretos
+	addi t3,t3,8		# t3 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
+
+	li t5,0	
+	li t6,2			# reinicia o contador para 16 quebras de linha
+	
+	li t4,960		# t4 = 5120
+	sub t1,t1,t4		# volta t1 16 linhas (pixel inicial da primeira linha)
+	mv t2,t1 		# t2 = POS_ROBOZINHO	
+	addi t2,t2,4		# t2 = POS_ROBOZINHO + 16 (pixel final da primeira linha)
+	
+	mv t0,t1		# t0 = t1
+	li t4,0xFF000000	# t4 = 0xFF000000 (carrega em t4 o endereço base da memoria VGA)
+	sub t0,t0,t4		# t0 = t0 - 0xFF000000 (subtrai o endereço base de t0, posição atual do Robozinho)
+	li t4,1
+	beq s6,t4,LOAD1U
+	la t4,mapa2
+	j LOAD2U
+LOAD1U:	la t4,mapa1		# carrega em t4 o endereço dos dados do mapa1
+LOAD2U:	addi t4,t4,8		# t4 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
+	add t4,t4,t0		# t4 = t4 + t0 (carrega em t4 o endereço do pixel do mapa1 no segmento de dados sobre o qual o Robozinho esta localizado)
+	
+	
+DELLOOPU:beq t1,t2,ENTER2U	# se t1 atingir o fim da linha de pixels, quebre linha
+	lb t0,0(t3)		# le um byte de "Robozinho1preto" para t0
+	sb t0,0(t1)		# escreve o byte (pixel preto\invisivel) na memória VGA
+	sb t0,0(t4)
+	
+	addi t1,t1,1		# soma 1 ao endereço t1
+	addi t3,t3,1		# soma 1 ao endereço t3
+	addi t4,t4,1		# soma 1 ao endereço t4
+	j DELLOOPU		# volta a verificar a condiçao do loop
+	
+ENTER2U:addi t1,t1,316		# t1 pula para o pixel inicial da linha de baixo na memoria VGA
+	addi t4,t4,316		# t4 pula para o pixel inicial da linha de baixo no segmento de dados
+	addi t2,t2,320		# t2 pula para o pixel final da linha de baixo na memoria VGA
+	addi t5,t5,1          	# atualiza o contador de quebras de linha
+	beq t5,t6,DELETE	# termina o carregamento da imagem se 16 quebras de linha ocorrerem
+	j DELLOOPU		# pula para delloop
+	
+DELDWNS:la t3,horpoint		# carrega a imagem que vai sobrepor o robozinho com pixels pretos
+	addi t3,t3,8		# t3 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
+
+	li t5,0	
+	li t6,2			# reinicia o contador para 16 quebras de linha
+	
+	li t4,640		# t4 = 5120
+	add t1,t1,t4		# volta t1 16 linhas (pixel inicial da primeira linha)
+	mv t2,t1 		# t2 = POS_ROBOZINHO	
+	addi t2,t2,4		# t2 = POS_ROBOZINHO + 16 (pixel final da primeira linha)
+	
+	mv t0,t1		# t0 = t1
+	li t4,0xFF000000	# t4 = 0xFF000000 (carrega em t4 o endereço base da memoria VGA)
+	sub t0,t0,t4		# t0 = t0 - 0xFF000000 (subtrai o endereço base de t0, posição atual do Robozinho)
+	li t4,1
+	beq s6,t4,LOAD1D
+	la t4,mapa2
+	j LOAD2D
+LOAD1D:	la t4,mapa1		# carrega em t4 o endereço dos dados do mapa1
+LOAD2D:	addi t4,t4,8		# t4 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
+	add t4,t4,t0		# t4 = t4 + t0 (carrega em t4 o endereço do pixel do mapa1 no segmento de dados sobre o qual o Robozinho esta localizado)
+	
+	
+DELLOOPD:beq t1,t2,ENTER2D	# se t1 atingir o fim da linha de pixels, quebre linha
+	lb t0,0(t3)		# le um byte de "Robozinho1preto" para t0
+	sb t0,0(t1)		# escreve o byte (pixel preto\invisivel) na memória VGA
+	sb t0,0(t4)
+	
+	addi t1,t1,1		# soma 1 ao endereço t1
+	addi t3,t3,1		# soma 1 ao endereço t3
+	addi t4,t4,1		# soma 1 ao endereço t4
+	j DELLOOPU		# volta a verificar a condiçao do loop
+	
+ENTER2D:addi t1,t1,316		# t1 pula para o pixel inicial da linha de baixo na memoria VGA
+	addi t4,t4,316		# t4 pula para o pixel inicial da linha de baixo no segmento de dados
+	addi t2,t2,320		# t2 pula para o pixel final da linha de baixo na memoria VGA
+	addi t5,t5,1          	# atualiza o contador de quebras de linha
+	beq t5,t6,DELETE	# termina o carregamento da imagem se 16 quebras de linha ocorrerem
+	j DELLOOPD		# pula para delloop
+
+DELRGHTS:
+	addi t1,t1,2		# t1 = t1 - 1 (carrega o endereço do pixel inferior esquerdo do ponto detectado)
+	la t3,vertpoint		# carrega a imagem que vai sobrepor o robozinho com pixels pretos
+	addi t3,t3,8		# t3 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
+
+	li t5,0	
+	li t6,4			# reinicia o contador para 16 quebras de linha
+	
+	li t4,960		# t4 = 5120
+	sub t1,t1,t4		# volta t1 16 linhas (pixel inicial da primeira linha)
+	mv t2,t1 		# t2 = POS_ROBOZINHO	
+	addi t2,t2,2		# t2 = POS_ROBOZINHO + 16 (pixel final da primeira linha)
+	
+	mv t0,t1		# t0 = t1
+	li t4,0xFF000000	# t4 = 0xFF000000 (carrega em t4 o endereço base da memoria VGA)
+	sub t0,t0,t4		# t0 = t0 - 0xFF000000 (subtrai o endereço base de t0, posição atual do Robozinho)
+	li t4,1
+	beq s6,t4,LOAD1R
+	la t4,mapa2
+	j LOAD2R
+LOAD1R:	la t4,mapa1		# carrega em t4 o endereço dos dados do mapa1
+LOAD2R:	addi t4,t4,8		# t4 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
+	add t4,t4,t0		# t4 = t4 + t0 (carrega em t4 o endereço do pixel do mapa1 no segmento de dados sobre o qual o Robozinho esta localizado)
+	
+	
+DELLOOPR:beq t1,t2,ENTER2R	# se t1 atingir o fim da linha de pixels, quebre linha
+	lb t0,0(t3)		# le um byte de "Robozinho1preto" para t0
+	sb t0,0(t1)		# escreve o byte (pixel preto\invisivel) na memória VGA
+	sb t0,0(t4)
+	
+	addi t1,t1,1		# soma 1 ao endereço t1
+	addi t3,t3,1		# soma 1 ao endereço t3
+	addi t4,t4,1		# soma 1 ao endereço t4
+	j DELLOOPR		# volta a verificar a condiçao do loop
+	
+ENTER2R:addi t1,t1,318		# t1 pula para o pixel inicial da linha de baixo na memoria VGA
+	addi t4,t4,318		# t4 pula para o pixel inicial da linha de baixo no segmento de dados
+	addi t2,t2,320		# t2 pula para o pixel final da linha de baixo na memoria VGA
+	addi t5,t5,1          	# atualiza o contador de quebras de linha
+	beq t5,t6,DELETE	# termina o carregamento da imagem se 16 quebras de linha ocorrerem
+	j DELLOOPR		# pula para delloop
 	
 # Printa preto em cima da posição do personagem (apaga o personagem anterior)
 	
