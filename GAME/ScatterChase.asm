@@ -49,6 +49,8 @@ CONTADOR_ASSUSTADO: .word -1
 .include "menuprincipal.data"
 .include "Robozinho1.data"
 .include "Robozinho2.data"
+.include "Robozinho1forte.data"
+.include "Robozinho2forte.data"
 .include "Robozinho1preto.data"
 .include "Inimigo1.data"
 .include "Inimigo2.data"
@@ -1958,16 +1960,28 @@ DELLFT: addi t1,t1,-1		# t1 = t1 - 1 (carrega o endereço do pixel inferior esqu
 	
 	li t3,0xFF000000	# t3 = 0xFF000000 (carrega em t3 o endereço base da memoria VGA)
 	sub t3,t1,t3		# t3 = t1 - 0xFF000000 (subtrai o endereço base de t1, posição do pixel a ser apagado)
-	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
-	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
+	
+	li t4,1
+	beq s6,t4,DELL1
+	la t5,mapa2
+	j DELL2
+	
+DELL1:	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
+DELL2:	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
 	add t5,t5,t3		# t5 = t5 + t3 (carrega em t5 o endereço do pixel do mapa1 a ser apagado) 
 	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa1 no segmento de dados)
 		
 	addi t1,t1,320		# t1 = t1 + 320 (carrega o endereço do pixel inferior esquerdo do ponto detectado)
 	li t3,0xFF000000	# t3 = 0xFF000000 (carrega em t3 o endereço base da memoria VGA)
 	sub t3,t1,t3		# t3 = t1 - 0xFF000000 (subtrai o endereço base de t1, posição do pixel a ser apagado)
-	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
-	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
+	
+	li t4,1
+	beq s6,t4,DELL3
+	la t5,mapa2
+	j DELL4
+	
+DELL3:	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
+DELL4:	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
 	add t5,t5,t3		# t5 = t5 + t3 (carrega em t5 o endereço do pixel do mapa1 a ser apagado)
 	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa1 no segmento de dados)
 	
@@ -1980,16 +1994,28 @@ DELUP:	addi t1,t1,-320		# t1 = t1 - 320 (carrega o endereço do pixel superior e
 	
 	li t3,0xFF000000	# t3 = 0xFF000000 (carrega em t3 o endereço base da memoria VGA)
 	sub t3,t1,t3		# t3 = t1 - 0xFF000000 (subtrai o endereço base de t1, posição do pixel a ser apagado)
-	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
-	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
+	
+	li t4,1
+	beq s6,t4,DELU1
+	la t5,mapa2
+	j DELU2
+	
+DELU1:	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
+DELU2:	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
 	add t5,t5,t3		# t5 = t5 + t3 (carrega em t5 o endereço do pixel do mapa1 a ser apagado) 
 	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa1 no segmento de dados)
 	
 	addi t1,t1,-1		# t1 = t1 - 1 (carrega o endereço do pixel superior esquerdo do ponto detectado)
 	li t3,0xFF000000	# t3 = 0xFF000000 (carrega em t3 o endereço base da memoria VGA)
 	sub t3,t1,t3		# t3 = t1 - 0xFF000000 (subtrai o endereço base de t1, posição do pixel a ser apagado)
-	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
-	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
+	
+	li t4,1
+	beq s6,t4,DELU3
+	la t5,mapa2
+	j DELU4
+	
+DELU3:	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
+DELU4:	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
 	add t5,t5,t3		# t5 = t5 + t3 (carrega em t5 o endereço do pixel do mapa1 a ser apagado)
 	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa1 no segmento de dados)
 	
@@ -2002,16 +2028,28 @@ DELDWN:	addi t1,t1,320		# t1 = t1 + 320 (carrega o endereço do pixel inferior e
 	
 	li t3,0xFF000000	# t3 = 0xFF000000 (carrega em t3 o endereço base da memoria VGA)
 	sub t3,t1,t3		# t3 = t1 - 0xFF000000 (subtrai o endereço base de t1, posição do pixel a ser apagado)
-	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
-	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
+	
+	li t4,1
+	beq s6,t4,DELD1
+	la t5,mapa2
+	j DELD2
+	
+DELD1:	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
+DELD2:	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
 	add t5,t5,t3		# t5 = t5 + t3 (carrega em t5 o endereço do pixel do mapa1 a ser apagado) 
 	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa1 no segmento de dados)
 	
 	addi t1,t1,-1		# t1 = t1 - 1 (carrega o endereço do pixel inferior esquerdo do ponto detectado)
 	li t3,0xFF000000	# t3 = 0xFF000000 (carrega em t3 o endereço base da memoria VGA)
 	sub t3,t1,t3		# t3 = t1 - 0xFF000000 (subtrai o endereço base de t1, posição do pixel a ser apagado)
-	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
-	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
+	
+	li t4,1
+	beq s6,t4,DELD3
+	la t5,mapa2
+	j DELD4
+	
+DELD3:	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
+DELD4:	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
 	add t5,t5,t3		# t5 = t5 + t3 (carrega em t5 o endereço do pixel do mapa1 a ser apagado)
 	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa1 no segmento de dados)
 	
@@ -2024,22 +2062,40 @@ DELRGHT:addi t1,t1,1		# t1 = t1 + 1 (carrega o endereço do pixel inferior direi
 	
 	li t3,0xFF000000	# t3 = 0xFF000000 (carrega em t3 o endereço base da memoria VGA)
 	sub t3,t1,t3		# t3 = t1 - 0xFF000000 (subtrai o endereço base de t1, posição do pixel a ser apagado)
-	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
-	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
+	
+	li t4,1
+	beq s6,t4,DELR1
+	la t5,mapa2
+	j DELR2
+	
+DELR1:	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
+DELR2:	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
 	add t5,t5,t3		# t5 = t5 + t3 (carrega em t5 o endereço do pixel do mapa1 a ser apagado) 
 	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa1 no segmento de dados)
 	
 	addi t1,t1,320		# t1 = t1 + 320 (carrega o endereço do pixel inferior direito do ponto detectado)
 	li t3,0xFF000000	# t3 = 0xFF000000 (carrega em t3 o endereço base da memoria VGA)
 	sub t3,t1,t3		# t3 = t1 - 0xFF000000 (subtrai o endereço base de t1, posição do pixel a ser apagado)
-	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
-	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
+	
+	li t4,1
+	beq s6,t4,DELR3
+	la t5,mapa2
+	j DELR4
+	
+DELR3:	la t5,mapa1		# carrega em t5 o endereço dos dados do mapa1 
+DELR4:	addi t5,t5,8		# t5 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
 	add t5,t5,t3		# t5 = t5 + t3 (carrega em t5 o endereço do pixel do mapa1 a ser apagado)
 	sb zero,0(t5)		# grava 0 no conteúdo do endereço t5 (apaga o pixel carregado anteriormente do mapa1 no segmento de dados)
 	
 	j DELETE 		# pule para DELETE
 	
 SPRPNT:	addi s1,s1,1		# incrementa o contador de pontos (a sessão a seguir toca uma triade de mi maior para cada ponto coletado)
+	
+	li s0,-1
+	
+	la t0,CONTADOR_ASSUSTADO
+	li t3,-1		
+	sw t3,0(t0)		
 	
 	li t0,17
 	rem t3,s4,t0
@@ -2061,21 +2117,21 @@ SPRPNT:	addi s1,s1,1		# incrementa o contador de pontos (a sessão a seguir toca
 	li s11, 51
 	add s11,s11,t3
 	
-	li a0,68		# a0 = 68 (carrega sol sustenido para a0)
+	li a0,56		# a0 = 56 (carrega sol sustenido para a0)
 	li a1,100		# a1 = 100 (nota de duração de 100 ms)
 	li a2,35		# a2 = 35 (timbre "electric bass")
 	li a3,50		# a3 = 50 (volume da nota)
 	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
 	ecall			# realiza o ecall
 	
-	li a0,71		# a0 = 71 (carrega si para a0)
+	li a0,59		# a0 = 59 (carrega si para a0)
 	li a1,100		# a1 = 100 (nota de duração de 100 ms)
 	li a2,32		# a2 = 32 (timbre "guitar harmonic")
 	li a3,50		# a3 = 50 (volume da nota)
 	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
 	ecall			# realiza o ecall
 	
-	li a0,76		# a0 = 76 (carrega mi para a0)
+	li a0,64		# a0 = 64 (carrega mi para a0)
 	li a1,100		# a1 = 100 (nota de duração de 100 ms)
 	li a2,32		# a2 = 32 (timbre "guitar harmonic")
 	li a3,50		# a3 = 50 (volume da nota)
@@ -2363,19 +2419,32 @@ MOVROB:	la t0,POS_ROBOZINHO	# carrega o endereço de "POS_ROBOZINHO" no registra
 	mv t2,t1 		# t2 = t1
 	addi t2,t2,16		# t2 = t2 + 16 (pixel final da primeira linha + 4)
 	
-	li t5,0
-	li t6,16		# reinicia contador para 16 quebras de linha
-	
 	li t4,2			# t4 = 2 (para verificar a paridade de s0)
 	rem t3,s0,t4		# t3 = resto da divisão inteira s0/2
-	beq t3,zero,PAR3	# se t3 = 0, va para PAR3 (se s0 for par, imprime o Robozinho1, se for impar, imprime o Robozinho2)
 	
-	la t3,Robozinho2	# t3 = endereço dos dados do Robozinho2 (boca aberta)
+	la t0,CONTADOR_ASSUSTADO
+	lw t5,0(t0)
+	li t0,-1
+	
+	beq t3,zero,PAR3	# se t3 = 0, va para PAR3 (se s0 for par, imprime o Robozinho1, se for impar, imprime o Robozinho2)
+
+	beq t5,t0,FRACO2
+	la t3,Robozinho2forte
+	j NEXT3
+	
+FRACO2:	la t3,Robozinho2	# t3 = endereço dos dados do Robozinho2 (boca aberta)
 	j NEXT3			# pula para NEXT3
 	
-PAR3:	la t3,Robozinho1	# t3 = endereço dos dados do Robozinho1 (boca fechada)
+PAR3:	beq t5,t0,FRACO1
+	la t3,Robozinho1forte
+	j NEXT3
 	
-NEXT3:	addi t3,t3,8		# t3 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)	
+FRACO1:	la t3,Robozinho1	# t3 = endereço dos dados do Robozinho1 (boca fechada)
+	
+NEXT3:	addi t3,t3,8		# t3 = endereço do primeiro pixel da imagem (depois das informações de nlin ncol)
+
+	li t5,0
+	li t6,16		# reinicia contador para 16 quebras de linha	
 	
 LOOP3: 	beq t1,t2,ENTER3	# se t1 atingir o fim da linha de pixels, quebre linha
 	lw t0,0(t3)		# le uma word do endereço t3 (le 4 pixels da imagem)
