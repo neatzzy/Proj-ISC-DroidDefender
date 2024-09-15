@@ -12,7 +12,7 @@
 #			 Earth's Last Sentinel				#
 #########################################################################
 
-.include "../SYSTEM/MACROSv24.s" 		# permite a utilização dos ecalls "1xx"
+.include "MACROSv24.s" 		# permite a utilização dos ecalls "1xx"
 	
 .data			
 
@@ -31,6 +31,7 @@ NOTAS2: 42, 923, 49, 923, 42, 923, 49, 923, 44, 923, 52, 923, 45, 923, 49, 923, 
 # Dados diversos (strings para HUD, posições dos personagens no bitmap display, etc)
 
 STR: .string "PONTOS: "
+STR2: .string "VIDAS: "
 
 POS_ROBOZINHO: .word 0xFF00B4C8 # endereco inicial da linha diretamente abaixo do Robozinho - posição inicial/atual do Robozinho
 POS_BLINKY: .word 0xFF0078C8	# coordenada inicial do alien verde claro (blinky)
@@ -42,23 +43,23 @@ CONTADOR_ASSUSTADO: .word -1
 
 # inclusão das imagens 
 
-.include "../DATA/mapa1.data"
-.include "../DATA/mapa1colisao.data"
-.include "../DATA/mapa2.data"
-.include "../DATA/mapa2colisao.data"
-.include "../DATA/menuprincipal.data"
-.include "../DATA/Robozinho1.data"
-.include "../DATA/Robozinho2.data"
-.include "../DATA/Robozinho1forte.data"
-.include "../DATA/Robozinho2forte.data"
-.include "../DATA/Robozinho1preto.data"
-.include "../DATA/Inimigo1.data"
-.include "../DATA/Inimigo2.data"
-.include "../DATA/Inimigo3.data"
-.include "../DATA/Inimigo4.data"
-.include "../DATA/InimigoAssustado.data"
-.include "../DATA/horpoint.data"
-.include "../DATA/vertpoint.data"
+.include "mapa1.data"
+.include "mapa1colisao.data"
+.include "mapa2.data"
+.include "mapa2colisao.data"
+.include "menuprincipal.data"
+.include "Robozinho1.data"
+.include "Robozinho2.data"
+.include "Robozinho1forte.data"
+.include "Robozinho2forte.data"
+.include "Robozinho1preto.data"
+.include "Inimigo1.data"
+.include "Inimigo2.data"
+.include "Inimigo3.data"
+.include "Inimigo4.data"
+.include "InimigoAssustado.data"
+.include "horpoint.data"
+.include "vertpoint.data"
 
 .text
 
@@ -199,12 +200,52 @@ IMG7:	li s1,0xFF100000	# s1 = endereco inicial da Memoria VGA - Frame 1
 	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
 	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
 	
-LOOPCOL:beq s1,s2,SETUP_MAIN	# se s1 = Ãºltimo endereÃ§o da Memoria VGA, saia do loop
+LOOPCOL:beq s1,s2,IMAGEM	# se s1 = Ãºltimo endereÃ§o da Memoria VGA, saia do loop
 	lw t0,0(s0)		# le uma word do endereÃ§o s0 (le 4 pixels da imagem)
 	sw t0,0(s1)		# escreve a word na memÃ³ria VGA no endereÃ§o s1 (desenha 4 pixels na tela do Bitmap Display)
 	addi s1,s1,4		# soma 4 ao endereÃ§o s1 
 	addi s0,s0,4		# soma 4 ao endereÃ§o s0
 	j LOOPCOL		# volta a verificar a condiÃ§ao do loop
+	
+# Carrega a imagem6 (Robozinho - imagem16x16)
+
+IMG8:	li s1,0xFF10A0C8	# s1 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li s2,0xFF10A0D8	# s2 = endereco final da primeira linha do alien 4 - Frame 0
+	li s0,0x69696969        # s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	j PRINT16_Q
+	
+# Carrega a imagem6 (ALIEN1 - imagem16x16)
+
+IMG9:	li s1,0xFF1064C8	# s1 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li s2,0xFF1064D8	# s2 = endereco final da primeira linha do alien 4 - Frame 0
+	li s0,0x70707070       	# s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	j PRINT16_Q
+
+# Carrega a imagem6 (ALIEN4 - imagem16x16)
+
+IMG10:	li s1,0xFF1087C8	# s1 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li s2,0xFF1087D8	# s2 = endereco final da primeira linha do alien 4 - Frame 0
+	li s0,0x71717171        # s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	j PRINT16_Q
+
+# Carrega a imagem6 (ALIEN4 - imagem16x16)
+
+IMG11:	li s1,0xFF1087B8	# s1 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li s2,0xFF1087C8	# s2 = endereco final da primeira linha do alien 4 - Frame 0
+	li s0,0x72727272        # s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	j PRINT16_Q
+
+# Carrega a imagem6 (ALIEN4 - imagem16x16)
+
+IMG12:	li s1,0xFF1087D8	# s1 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li s2,0xFF1087E8	# s2 = endereco final da primeira linha do alien 4 - Frame 0
+	li s0,0x73737373        # s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	j PRINT16_Q
 	
 # Compara os endereÃ§os para ver qual a proxima imagem a ser printada
 
@@ -223,7 +264,25 @@ IMAGEM: beq t3, t4, IMG2 	# se t3 contiver o endereÃ§o "mapa1", vÃ¡ para IMG
 	beq t3, t4, IMG6	# se t3 contiver o endereÃ§o "Inimigo3", vÃ¡ para IMG6 (imprime a imagem6)
 	
 	la t4, Inimigo4		# t4 = endereÃ§o dos dados do alien 4
-	beq t3, t4, IMG7	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)	
+	beq t3, t4, IMG7	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	la t4, mapa1colisao
+	beq t3, t4, IMG8	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, 0x69696969
+	beq t3, t4, IMG9	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, 0x70707070
+	beq t3, t4, IMG10	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, 0x71717171
+	beq t3, t4, IMG11	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, 0x72727272
+	beq t3, t4, IMG12	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, 0x73737373
+	beq t3, t4, SETUP_MAIN	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
 	
 # Loop que imprime imagens 16x16
 
@@ -242,6 +301,23 @@ ENTER:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 	addi t1,t1,1          	# atualiza o contador de quebras de linha
 	beq t1,t2,IMAGEM	# termina o carregamento da imagem se 17 quebras de linha ocorrerem
 	j LOOP2	
+	
+# Loop que imprime quadrados 16x16
+
+PRINT16_Q:
+	li t1,0
+	li t2,16		#inicializa o contador de quebra de linha para 16 quebras de linha
+	
+LOOP2Q: beq s1,s2,ENTERQ	# se s1 atingir o fim da linha de pixels, quebre linha
+	sw s0,0(s1)		# escreve a word na memÃ³ria VGA no endereÃ§o s1 (desenha 4 pixels na tela do Bitmap Display)
+	addi s1,s1,4		# soma 4 ao endereÃ§o s1
+	j LOOP2Q 		# volta a verificar a condiÃ§ao do loop
+	
+ENTERQ:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
+	addi s2,s2,320		# s2 pula para o pixel final da linha de baixo
+	addi t1,t1,1          	# atualiza o contador de quebras de linha
+	beq t1,t2,IMAGEM	# termina o carregamento da imagem se 17 quebras de linha ocorrerem
+	j LOOP2Q
 	
 # Setup dos dados necessarios para o main loop
 
@@ -285,7 +361,7 @@ BLINKY:	li s7,1			# s7 = 1 (salva em s7 a informação de qual alien esta sendo 
 	mv a1, t2		# a1 = t2 (parametro da funçao CALCULO_TARGET)
 	mv a2, s4		# a2 = s4 (parametro da funçao CALCULO_TARGET)
 	
-	jal a7, CALCULO_TARGET 	# Pula para CALCULO_TARGET e guarda o retorno em a7
+	j CALCULO_TARGET 	# Pula para CALCULO_TARGET
 	
 # Setup dos dados do alien azul (pink)
 
@@ -306,7 +382,7 @@ PINK:	li s7,2			# s7 = 2 (salva em s7 a informação de qual alien esta sendo mo
 	mv a1, t2		# a1 = t2 (parametro da funçao CALCULO_TARGET)
 	mv a2, s9		# a2 = s4 (parametro da funçao CALCULO_TARGET)
 	
-	jal a7, CALCULO_TARGET 	# Pula para CALCULO_TARGET e guarda o retorno em a7
+	j CALCULO_TARGET 	# Pula para CALCULO_TARGET
 	
 # Setup dos dados do alien roxo (inky)
 
@@ -328,7 +404,7 @@ INKY:	li s7,3			# s7 = 3 (salva em s7 a informação de qual alien esta sendo mo
 	mv a2, s10		# a2 = s4 (parametro da funçao CALCULO_TARGET)
 	
 	
-	jal a7, CALCULO_TARGET 	# Pula para CALCULO_TARGET e guarda o retorno em a7
+	j CALCULO_TARGET 	# Pula para CALCULO_TARGET
 	
 # Setup dos dados do alien laranja (clyde)
 
@@ -349,13 +425,7 @@ CLYDE:	li s7,4			# s7 = 4 (salva em s7 a informação de qual alien esta sendo m
 	mv a1, t2		# a1 = t2 (parametro da funçao CALCULO_TARGET)
 	mv a2, s11		# a2 = s4 (parametro da funçao CALCULO_TARGET)
 	
-	jal a7, CALCULO_TARGET 	# pula para CALCULO_TARGET e guarda o retorno em a7
-	
-	li a7,32		# carrega em a7 o serviço 32 do ecall (sleep - interrompe a execução do programa)
-	li a0,80		# carrega em a0 o tempo pelo qual o codigo sera interrompido (2 ms)
-	ecall			# realiza o ecall
-	
-	j ROBOZINHO           	# pula para ROBOZINHO (ultimo alien foi movimentado, então o loop dos aliens se encerra)
+	j CALCULO_TARGET 	# pula para CALCULO_TARGET
 	
 # Função que calcula o target do alien com relação a posição do Robozinho
 # Calculo de distancia: distancia de manhattan : (|x_alien - x_target|) + (|y_alien - y_target|)
@@ -1345,6 +1415,9 @@ VERC_A:	li a0,0x100000		# a0 = 0x100000
 	add a1,a1,a0		# soma 0x100000 a a1 (transforma o conteudo de a em um endereÃ§o do Frame 1)
 	lbu a0,0(a1)		# carrega em a0 um byte do endereÃ§o a1 (cor do pixel de a1) -> OBS: o load byte deve ser "unsigned" 
 				# Ex: 0d200 = 0xc8 = 0b11001000. como o MSB desse byte Ã© 1, ele seria interpretado como -56 e nÃ£o 200 (t6 = 0xffffffc8)
+				
+	li a1,0x69
+	beq a0,a1, COLIDIU_R			
 	li a1,200		# a1 = 200
 	beq a0,a1, COLIDIU_A	# se a0 = 200, vÃ¡ para COLIDIU_A (se a cor do pixel for azul, termina a iteraÃ§Ã£o e impede movimento do Robozinho)
 	li a1,3			# a1 = 3
@@ -1399,8 +1472,55 @@ ENTER2_A:
 	addi t3,t3,304		# t1 pula para o pixel inicial da linha de baixo do segmento de dados 
 	addi t2,t2,320		# t2 (a4 + 16) pula para o pixel final da linha de baixo da memoria VGA
 	addi t5,t5,1          	# atualiza o contador de quebras de linha
-	beq t5,t6,SETUP_MOV	# termina o carregamento da imagem se 16 quebras de linha ocorrerem e vai para o loop de carregamento da imagem
+	beq t5,t6,SETUP_DELETE_COL	# termina o carregamento da imagem se 16 quebras de linha ocorrerem e vai para o loop de carregamento da imagem
 	j DELLOOP_A		# pula para delloop
+	
+# Deleta o personagem caso haja movimento
+
+SETUP_DELETE_COL:
+	
+	li t0,0x100000
+	add t1,a4,t0
+	addi t2,t1,16		# t2 = a4 + 16 (posição atual do alien - pixel inicial da linha)
+	
+DELETE_A_COL:
+
+	li t5,0	
+	li t6,16		# reinicia o contador para 16 quebras de linha
+	
+	li t4, 5120		# t4 = 5120
+	sub t1, t1, t4		# volta t1 16 linhas (pixel inicial da primeira linha) 
+	sub t2, t2, t4		# volta t2 16 linhas (pixel final da primeira linha)
+	
+	li t0,1
+	beq s6,t0,DELFS1_COL
+	la t3,mapa2colisao
+	j DELFS2_COL
+	
+DELFS1_COL:	
+	la t3,mapa1colisao		# carrega em t3 o endereço dos dados do mapa1
+
+DELFS2_COL:	
+	addi t3,t3,8		# t3 = endereço do primeiro pixel do mapa1 (depois das informações de nlin ncol)
+	li t0,0xFF100000	# t0 = 0xFF000000 (carrega em t0 o endereço base da memoria VGA)
+	sub t0,t1,t0		# t0 = t1 - 0xFF000000 (subtrai o endereço base de t1, posição atual do alien)
+	add t3,t3,t0		# t3 = t3 + t0 (carrega em t3 o endereço do pixel do mapa1 no segmento de dados sobre o qual o alien esta localizado)
+	
+DELLOOP_A_COL:
+	beq t1,t2,ENTER2_A_COL	# se t1 atingir o fim da linha de pixels, quebre linha
+	lw t0,0(t3)		# le uma word do endereço t3 (le 4 pixels do mapa1 no segmento de dados)
+	sw t0,0(t1)		# escreve a word (4 pixels do mapa1) na memória VGA
+	addi t1,t1,4		# soma 4 ao endereço t1
+	addi t3,t3,4		# soma 4 ao endereço t3
+	j DELLOOP_A_COL		# volta a verificar a condiçao do loop
+
+ENTER2_A_COL:
+	addi t1,t1,304		# t1 (a4) pula para o pixel inicial da linha de baixo da memoria VGA
+	addi t3,t3,304		# t1 pula para o pixel inicial da linha de baixo do segmento de dados 
+	addi t2,t2,320		# t2 (a4 + 16) pula para o pixel final da linha de baixo da memoria VGA
+	addi t5,t5,1          	# atualiza o contador de quebras de linha
+	beq t5,t6,SETUP_MOV	# termina o carregamento da imagem se 16 quebras de linha ocorrerem e vai para o loop de carregamento da imagem
+	j DELLOOP_A_COL		# pula para delloop
 
 # ve em qual direção foi o movimento para printar o personagem
 
@@ -1476,6 +1596,40 @@ LOOP2_MA:
 	beq t1,t2,ENTER_MA	# se t1 atingir o fim da linha de pixels, quebre linha
 	lw t0,0(t3)		# le uma word do endereço t3 (le 4 pixels da imagem)
 	sw t0,0(t1)		# escreve a word na memória VGA no endereço t1 (desenha 4 pixels na tela do Bitmap Display)
+	
+	li t0,0x100000
+	add t1,t1,t0
+	
+	li t0, 1			# t0 = 1
+	beq s7, t0, PRINT70		# se a5 = 1, então vai para MOV_UP_A
+	
+	li t0, 2			# t0 = 2
+	beq s7, t0, PRINT71		# se a5 = 2, então vai para MOV_LEFT_A
+	
+	li t0, 3			# t0 = 3
+	beq s7, t0, PRINT72		# se a5 = 3, então vai para MOV_DOWN_A
+	
+	li t0, 4			# t0 = 4
+	beq s7, t0, PRINT73		# se a5 = 4, então vai para MOV_RIGHT_A
+	
+PRINT70:li t0,0x70707070
+	sw t0,0(t1) 
+	j NXTSQR
+	
+PRINT71:li t0,0x71717171
+	sw t0,0(t1)
+	j NXTSQR
+	
+PRINT72:li t0,0x72727272
+	sw t0,0(t1)
+	j NXTSQR
+	
+PRINT73:li t0,0x73737373
+	sw t0,0(t1)
+	j NXTSQR
+	
+NXTSQR:	li t0,0x100000
+	sub t1,t1,t0
 	addi t1,t1,4		# soma 4 ao endereço t1
 	addi t3,t3,4		# soma 4 ao endereço t3
 	j LOOP2_MA 		# volta a verificar a condiçao do loop
@@ -1509,22 +1663,42 @@ BLINKY_MOV:
 	la t0, POS_BLINKY   	# carrega o endereço de "POS_ROBOZINHO" no registrador t0 
     	sw t1, 0(t0)       	# guarda a word armazenada em t1 (posição atual do Roboziho) em "POS_ROBOZINHO"
     	add s4, s4 ,t4		# adiciona ao movimento do alien o movimento atual(ex.: s4 = 17 + t4)	
-	jalr x0, a7, 0		# volta para o loop dos aliens
+	j PINK
 PINK_MOV:
 	la t0, POS_PINK   	# carrega o endereço de "POS_ROBOZINHO" no registrador t0 
     	sw t1, 0(t0)       	# guarda a word armazenada em t1 (posição atual do Roboziho) em "POS_ROBOZINHO"	
     	add s9, s9, t4		# adiciona ao movimento do alien o movimento atual(ex.: s9 = 17 + t4)
-	jalr x0, a7, 0		# volta para o loop dos aliens
+	j INKY
 INKY_MOV:
 	la t0, POS_INKY   	# carrega o endereço de "POS_ROBOZINHO" no registrador t0 
     	sw t1, 0(t0)       	# guarda a word armazenada em t1 (posição atual do Roboziho) em "POS_ROBOZINHO"	
     	add s10, s10, t4	# adiciona ao movimento do alien o movimento atual(ex.: s10 = 17 + t4)
-	jalr x0, a7, 0		# volta para o loop dos aliens
+	j CLYDE
 CLYDE_MOV:
 	la t0, POS_CLYDE   	# carrega o endereço de "POS_ROBOZINHO" no registrador t0 
     	sw t1, 0(t0)       	# guarda a word armazenada em t1 (posição atual do Roboziho) em "POS_ROBOZINHO"
     	add s11, s11, t4	# adiciona ao movimento do alien o movimento atual(ex.: s11 = 17 + t4)
-	jalr x0, a7, 0		# volta para o loop dos aliens
+    	
+    	li a7,32		# carrega em a7 o serviço 32 do ecall (sleep - interrompe a execução do programa)
+	li a0,80		# carrega em a0 o tempo pelo qual o codigo sera interrompido (2 ms)
+	ecall			# realiza o ecall
+	
+	j ROBOZINHO
+	
+# Se o alien colidir com o Robozinho
+
+COLIDIU_R:
+	la a0,CONTADOR_ASSUSTADO
+	lw a1,0(a0)
+	li a0,-1
+	beq a0,a1,VERFASE
+	
+	mv a1, a4		# a1 = a4
+	jalr x0, a3, 0 		# retorna para verificar se outro pixel detectou colisÃ£o
+	
+VERFASE:li t0,1
+	beq s6,t0,FASE1
+	j RESET_FASE2
 	
 # Parte do codigo que lida com a movimentação do Robozinho
 
@@ -1539,12 +1713,30 @@ ROBOZINHO:
 	ecall			# realiza o ecall
 	
 	li a7,101		# carrega em a7 o serviço 101 do ecall (print integer on bitmap display)
-	mv a0,s1		# carrega em a0 o valor do inteiro a ser printado (a0 = s1 = pontuação atual do jogador)
+	mv a0,s1		# carrega em a0 o valor do inteiro a ser printado (s1 = pontuação atual do jogador)
 	li a1,60		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 60)
         li a2,2			# carrega em a1 a linha a partir da qual o inteiro vai ser printado (linha 2)
 	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
 	li a4,0			# carrega em a4 o frame onde o inteiro deve ser printado (Frame 0 da memoria VGA)
 	ecall			# realiza o ecall
+	
+	li a7,104		# carrega em a7 o serviço 104 do ecall (print string on bitmap display)
+	la a0,STR2		# carrega em a0 o endereço da string a ser printada (STR2: "VIDAS: ")
+	li a1,1			# carrega em a1 a coluna a partir da qual a string vai ser printada (coluna 1)
+       	li a2,231		# carrega em a2 a linha a partir da qual a string vai ser printada (linha 231)
+	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
+	li a4,0 		# carrega em a4 o frame onde a string deve ser printada (Frame 0 da memoria VGA)
+	ecall			# realiza o ecall
+	
+	li a7,101		# carrega em a7 o serviço 101 do ecall (print integer on bitmap display)
+	mv a0,s2		# carrega em a0 o valor do inteiro a ser printado (s2 = vidas restantes do jogador)
+	li a1,52		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 52)
+        li a2,231		# carrega em a1 a linha a partir da qual o inteiro vai ser printado (linha 231)
+	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
+	li a4,0			# carrega em a4 o frame onde o inteiro deve ser printado (Frame 0 da memoria VGA)
+	ecall			# realiza o ecall
+	
+	beq s2,zero,DERROTA
 	
 	li t0,1
 	beq s6,t0,VERVIC1
@@ -1554,8 +1746,8 @@ VERVIC1:li t0,103
 	beq s1,t0,FASE2
 	j FASE
 	
-VERVIC2:li t0,142
-	#beq s1,t0,WINGAME
+VERVIC2:li t0,144
+	beq s1,t0,VITORIA
 	j FASE
 	
 FASE:	li t0,0xFF200000	# carrega o endereço de controle do KDMMIO ("teclado")
@@ -1728,6 +1920,19 @@ VERC:	li t0,0x100000		# t0 = 0x100000
 	add t1,t1,t0		# soma 0x100000 a t1 (transforma o conteudo de t1 em um endereço do Frame 1)
 	lbu t0,0(t1)		# carrega em t0 um byte do endereço t1 (cor do pixel de t1) -> OBS: o load byte deve ser "unsigned" 
 				# Ex: 0d200 = 0xc8 = 0b11001000. como o MSB desse byte é 1, ele seria interpretado como -56 e não 200 (t0 = 0xffffffc8)
+				
+	li t1,0x70		# t1 = 200
+	beq t0,t1,COL_BLINKY	# se t0 = 200, vá para VERWAY (se a cor do pixel for azul, verifica se o movimento do Robozinho foi causado ou não pelo jogador)
+	
+	li t1,0x71		# t1 = 200
+	beq t0,t1,COL_PINK	# se t0 = 200, vá para VERWAY (se a cor do pixel for azul, verifica se o movimento do Robozinho foi causado ou não pelo jogador)
+	
+	li t1,0x72		# t1 = 200
+	beq t0,t1,COL_INKY	# se t0 = 200, vá para VERWAY (se a cor do pixel for azul, verifica se o movimento do Robozinho foi causado ou não pelo jogador)
+	
+	li t1,0x73		# t1 = 200
+	beq t0,t1,COL_CLYDE	# se t0 = 200, vá para VERWAY (se a cor do pixel for azul, verifica se o movimento do Robozinho foi causado ou não pelo jogador)
+	
 	li t1,200		# t1 = 200
 	beq t0,t1,VERWAY	# se t0 = 200, vá para VERWAY (se a cor do pixel for azul, verifica se o movimento do Robozinho foi causado ou não pelo jogador)
 	
@@ -2094,7 +2299,7 @@ SPRPNT:	addi s1,s1,1		# incrementa o contador de pontos (a sessão a seguir toca
 	li s0,-1
 	
 	la t0,CONTADOR_ASSUSTADO
-	li t3,-1		
+	li t3,0		
 	sw t3,0(t0)		
 	
 	li t0,17
@@ -2358,8 +2563,36 @@ ENTER2:	addi t1,t1,304		# t1 pula para o pixel inicial da linha de baixo na memo
 	addi t4,t4,304		# t4 pula para o pixel inicial da linha de baixo no segmento de dados
 	addi t2,t2,320		# t2 pula para o pixel final da linha de baixo na memoria VGA
 	addi t5,t5,1          	# atualiza o contador de quebras de linha
-	beq t5,t6,VERIFY	# termina o carregamento da imagem se 16 quebras de linha ocorrerem
+	beq t5,t6,DELETE_COL	# termina o carregamento da imagem se 16 quebras de linha ocorrerem
 	j DELLOOP		# pula para delloop 
+	
+# Printa preto em cima da posição do personagem (apaga o personagem anterior)
+	
+DELETE_COL:
+	li t5,0	
+	li t6,16		# reinicia o contador para 16 quebras de linha
+	
+	li t4,5120		# t4 = 5120
+	la t0,POS_ROBOZINHO	# carrega o endereço de "POS_ROBOZINHO" no registrador t0
+	lw t1,0(t0)		# le a word guardada em "POS_ROBOZINHO" para t1 (t1 = posição atual do Robozinho)
+	li t0,0x100000
+	add t1,t1,t0
+	sub t1,t1,t4		# volta t1 16 linhas (pixel inicial da primeira linha)
+	mv t2,t1 		# t2 = POS_ROBOZINHO	
+	addi t2,t2,16		# t2 = POS_ROBOZINHO + 16 (pixel final da primeira linha)
+	
+DELLOOP_COL:
+	beq t1,t2,ENTER2_COL	# se t1 atingir o fim da linha de pixels, quebre linha
+	sw zero,0(t1)		# escreve o byte (pixel preto\invisivel) na memória VGA
+	addi t1,t1,4		# soma 1 ao endereço t1
+	j DELLOOP_COL		# volta a verificar a condiçao do loop
+	
+ENTER2_COL:	
+	addi t1,t1,304		# t1 pula para o pixel inicial da linha de baixo na memoria VGA
+	addi t2,t2,320		# t2 pula para o pixel final da linha de baixo na memoria VGA
+	addi t5,t5,1          	# atualiza o contador de quebras de linha
+	beq t5,t6,VERIFY	# termina o carregamento da imagem se 16 quebras de linha ocorrerem
+	j DELLOOP_COL		# pula para delloop 
 	
 # Verifica qual a tecla pressionada para movimentar o Robozinho
 	
@@ -2449,6 +2682,16 @@ NEXT3:	addi t3,t3,8		# t3 = endereço do primeiro pixel da imagem (depois das in
 LOOP3: 	beq t1,t2,ENTER3	# se t1 atingir o fim da linha de pixels, quebre linha
 	lw t0,0(t3)		# le uma word do endereço t3 (le 4 pixels da imagem)
 	sw t0,0(t1)		# escreve a word na memória VGA no endereço t1 (desenha 4 pixels na tela do Bitmap Display)
+	
+	li t0,0x100000
+	add t1,t1,t0
+	
+	li t0,0x69696969
+	sw t0,0(t1)
+	
+	li t0,0x100000
+	sub t1,t1,t0
+	
 	addi t1,t1,4		# soma 4 ao endereço t1
 	addi t3,t3,4		# soma 4 ao endereço t3
 	j LOOP3			# volta a verificar a condiçao do loop
@@ -2470,11 +2713,321 @@ FIMMOV:	la t0, POS_ROBOZINHO    # carrega o endereço de "POS_ROBOZINHO" no regi
 	
 FIM:	j MAINL			# retorna ao loop principal
 
+# Se o Robozinho colidir com o Blinky ou vice-versa
+
+COL_BLINKY:
+	la t0,CONTADOR_ASSUSTADO
+	lw t1,0(t0)
+	li t0,-1
+	beq t0,t1,VERFASE_B
+	
+	la t0,POS_ROBOZINHO	# carrega o endereço de "POS_ROBOZINHO" no registrador t0
+	lw t1,0(t0)		# le a word guardada em "POS_ROBOZINHO" para t1 (t1 = posição atual do Robozinho)
+	ret
+	
+
+# Se o Robozinho colidir com o Blinky ou vice-versa
+
+COL_PINK:
+	la t0,CONTADOR_ASSUSTADO
+	lw t1,0(t0)
+	li t0,-1
+	beq t0,t1,VERFASE_B
+	
+	la t0,POS_ROBOZINHO	# carrega o endereço de "POS_ROBOZINHO" no registrador t0
+	lw t1,0(t0)		# le a word guardada em "POS_ROBOZINHO" para t1 (t1 = posição atual do Robozinho)
+	ret
+
+# Se o Robozinho colidir com o Blinky ou vice-versa
+
+COL_INKY:
+	la t0,CONTADOR_ASSUSTADO
+	lw t1,0(t0)
+	li t0,-1
+	beq t0,t1,VERFASE_B
+	
+	la t0,POS_ROBOZINHO	# carrega o endereço de "POS_ROBOZINHO" no registrador t0
+	lw t1,0(t0)		# le a word guardada em "POS_ROBOZINHO" para t1 (t1 = posição atual do Robozinho)
+	ret
+
+# Se o Robozinho colidir com o Blinky ou vice-versa
+
+COL_CLYDE:
+	la t0,CONTADOR_ASSUSTADO
+	lw t1,0(t0)
+	li t0,-1
+	beq t0,t1,VERFASE_B
+	
+	la t0,POS_ROBOZINHO	# carrega o endereço de "POS_ROBOZINHO" no registrador t0
+	lw t1,0(t0)		# le a word guardada em "POS_ROBOZINHO" para t1 (t1 = posição atual do Robozinho)
+	ret
+	
+VERFASE_B:
+	li t0,1
+	beq s6,t0,FASE1
+	j RESET_FASE2
+
+DERROTA:li a7, 10
+	ecall	
+	
+VITORIA:li a7, 10
+	ecall
+	
+###########################
+##### DADOS DA FASE 1 #####
+###########################
+	
+FASE1:  li s6,1
+
+	li a0,3000
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+   	
+# Carrega a imagem1 (mapa2) no frame 0
+	
+IMG1_1:	la t4, mapa1		# t4 cerrega endereÃ§o do mapa a fim de comparaÃ§Ã£o
+	li t5,0xFF000000	# t5 = endereco inicial da Memoria VGA - Frame 0
+	li t6,0xFF012C00	# t6 = endereco final da Memoria VGA - Frame 0
+	la s0,mapa1		# s0 = endereÃ§o dos dados do mapa 1
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
+	
+LOOP1_1: 
+	beq t5,t6,IMAGEM_1	# se t5 = Ãºltimo endereÃ§o da Memoria VGA, saia do loop
+	lw t0,0(s0)		# le uma word do endereÃ§o s0 (le 4 pixels da imagem)
+	sw t0,0(t5)		# escreve a word na memÃ³ria VGA no endereÃ§o t5 (desenha 4 pixels na tela do Bitmap Display)
+	addi t5,t5,4		# soma 4 ao endereÃ§o t5 
+	addi s0,s0,4		# soma 4 ao endereÃ§o s0
+	j LOOP1_1		# volta a verificar a condiÃ§ao do loop
+
+# Carrega a imagem2 (Robozinho1 - imagem 16x16) no frame 0
+
+IMG2_1:	li t5,0xFF00A0C8	# t5 = endereco inicial da primeira linha do Robozinho - Frame 0
+	li t6,0xFF00A0D8	# t6 = endereco final da primeira linha do Robozinho (inicial +16) - Frame 0
+	la s0,Robozinho1	# s0 = endereÃ§o dos dados do Robozinho1 (boca fechada)
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
+	j PRINT16_1
+	
+# Carrega a imagem3 (ALIEN1 - imagem16x16)
+
+IMG3_1:	li t5,0xFF0064C8	# t5 = endereco inicial da primeira linha do alien 1 - Frame 0 
+	li t6,0xFF0064D8	# t6 = endereco final da primeira linha do alien 1 (inicial +16) - Frame 0      
+	la s0,Inimigo1          # s0 = endereÃ§o dos dados do alien1
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
+	j PRINT16_1
+	
+# Carrega a imagem4 (ALIEN2 - imagem16x16)
+
+IMG4_1:	li t5,0xFF0087C8	# t5 = endereco inicial da primeira linha do alien 2 - Frame 0
+	li t6,0xFF0087D8	# t6 = endereco final da primeira linha do alien 2 - Frame 0
+	la s0,Inimigo2          # s0 = endereÃ§o dos dados do alien2
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
+	j PRINT16_1
+
+# Carrega a imagem5 (ALIEN3 - imagem16x16)
+
+IMG5_1:	li t5,0xFF0087B8	# t5 = endereco inicial da primeira linha do alien 3 - Frame 0
+	li t6,0xFF0087C8	# t6 = endereco final da primeira linha do alien 3 - Frame 0
+	la s0,Inimigo3          # s0 = endereÃ§o dos dados do alien3
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
+	j PRINT16_1
+	
+# Carrega a imagem6 (ALIEN4 - imagem16x16)
+
+IMG6_1:	li t5,0xFF0087D8	# t5 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li t6,0xFF0087E8	# t6 = endereco final da primeira linha do alien 4 - Frame 0
+	la s0, Inimigo4         # s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
+	j PRINT16_1
+	
+# Carrega a imagem7 (mapa1 - colisao) no frame 1
+	
+IMG7_1:	li t5,0xFF100000	# t5 = endereco inicial da Memoria VGA - Frame 1
+	li t6,0xFF112C00	# t6 = endereco final da Memoria VGA - Frame 1
+	la s0,mapa1colisao	# s0 = endereÃ§o dos dados da colisao do mapa 1
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
+	
+LOOPCOL_1:
+	beq t5,t6,IMAGEM_1	# se t5 = Ãºltimo endereÃ§o da Memoria VGA, saia do loop
+	lw t0,0(s0)		# le uma word do endereÃ§o s0 (le 4 pixels da imagem)
+	sw t0,0(t5)		# escreve a word na memÃ³ria VGA no endereÃ§o t5 (desenha 4 pixels na tela do Bitmap Display)
+	addi t5,t5,4		# soma 4 ao endereÃ§o t5 
+	addi s0,s0,4		# soma 4 ao endereÃ§o s0
+	j LOOPCOL_1		# volta a verificar a condiÃ§ao do loop
+	
+# Carrega a imagem6 (Robozinho - imagem16x16)
+
+IMG8_1:	li t5,0xFF10A0C8	# t5 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li t6,0xFF10A0D8	# t6 = endereco final da primeira linha do alien 4 - Frame 0
+	li s0,0x69696969        # s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	j PRINT16_Q_1
+	
+# Carrega a imagem6 (ALIEN1 - imagem16x16)
+
+IMG9_1:	li t5,0xFF1064C8	# t5 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li t6,0xFF1064D8	# t6 = endereco final da primeira linha do alien 4 - Frame 0
+	li s0,0x70707070       	# s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	j PRINT16_Q_1
+
+# Carrega a imagem6 (ALIEN4 - imagem16x16)
+
+IMG10_1:li t5,0xFF1087C8	# t5 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li t6,0xFF1087D8	# t6 = endereco final da primeira linha do alien 4 - Frame 0
+	li s0,0x71717171        # s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	j PRINT16_Q_1
+
+# Carrega a imagem6 (ALIEN4 - imagem16x16)
+
+IMG11_1:li t5,0xFF1087B8	# t5 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li t6,0xFF1087C8	# t6 = endereco final da primeira linha do alien 4 - Frame 0
+	li s0,0x72727272        # s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	j PRINT16_Q_1
+
+# Carrega a imagem6 (ALIEN4 - imagem16x16)
+
+IMG12_1:li t5,0xFF1087D8	# t5 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li t6,0xFF1087E8	# t6 = endereco final da primeira linha do alien 4 - Frame 0
+	li s0,0x73737373        # s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	j PRINT16_Q_1
+	
+# Compara os endereÃ§os para ver qual a proxima imagem a ser printada
+
+IMAGEM_1: 
+	beq t3, t4, IMG2_1 	# se t3 contiver o endereÃ§o "mapa1", vÃ¡ para IMG2 (imprime a imagem2)
+	
+	la t4, Robozinho1	# t4 = endereÃ§o dos dados do Robozinho1
+	beq t3, t4, IMG3_1	# se t3 contiver o endereÃ§o "Robozinho1", vÃ¡ para IMG3 (imprime a imagem3)
+	
+	la t4, Inimigo1		# t4 = endereÃ§o dos dados do alien 1
+	beq t3, t4, IMG4_1	# se t3 contiver o endereÃ§o "Inimigo1", vÃ¡ para IMG4 (imprime a imagem4)
+	
+	la t4, Inimigo2		# t4 = endereÃ§o dos dados do alien 2
+	beq t3, t4, IMG5_1	# se t3 contiver o endereÃ§o "Inimigo2", vÃ¡ para IMG5 (imprime a imagem5)
+	
+	la t4, Inimigo3		# t4 = endereÃ§o dos dados do alien 3
+	beq t3, t4, IMG6_1	# se t3 contiver o endereÃ§o "Inimigo3", vÃ¡ para IMG6 (imprime a imagem6)
+	
+	la t4, Inimigo4		# t4 = endereÃ§o dos dados do alien 4
+	beq t3, t4, IMG7_1	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	la t4, mapa1colisao
+	beq t3, t4, IMG8_1	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, 0x69696969
+	beq t3, t4, IMG9_1	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, 0x70707070
+	beq t3, t4, IMG10_1	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, 0x71717171
+	beq t3, t4, IMG11_1	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, 0x72727272
+	beq t3, t4, IMG12_1	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, 0x73737373
+	beq t3, t4, SETUP_MAIN_1	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)	
+	
+# Loop que imprime imagens 16x16
+
+PRINT16_1:
+	li t1,0
+	li t2,16		#inicializa o contador de quebra de linha para 16 quebras de linha
+	
+LOOP2_1: 	
+	beq t5,t6,ENTER_1	# se t5 atingir o fim da linha de pixels, quebre linha
+	lw t0,0(s0)		# le uma word do endereÃ§o s0 (le 4 pixels da imagem)
+	sw t0,0(t5)		# escreve a word na memÃ³ria VGA no endereÃ§o t5 (desenha 4 pixels na tela do Bitmap Display)
+	addi t5,t5,4		# soma 4 ao endereÃ§o t5
+	addi s0,s0,4		# soma 4 ao endereÃ§o s0
+	j LOOP2_1 		# volta a verificar a condiÃ§ao do loop
+	
+ENTER_1:	
+	addi t5,t5,304		# t5 pula para o pixel inicial da linha de baixo
+	addi t6,t6,320		# t6 pula para o pixel final da linha de baixo
+	addi t1,t1,1          	# atualiza o contador de quebras de linha
+	beq t1,t2,IMAGEM_1	# termina o carregamento da imagem se 17 quebras de linha ocorrerem
+	j LOOP2_1
+
+# Loop que imprime imagens 16x16
+
+PRINT16_Q_1:
+	li t1,0
+	li t2,16		#inicializa o contador de quebra de linha para 16 quebras de linha
+	
+LOOP2Q_1: beq t5,t6,ENTERQ_1	# se t5 atingir o fim da linha de pixels, quebre linha
+	sw s0,0(t5)		# escreve a word na memÃ³ria VGA no endereÃ§o t5 (desenha 4 pixels na tela do Bitmap Display)
+	addi t5,t5,4		# soma 4 ao endereÃ§o t5
+	j LOOP2Q_1		# volta a verificar a condiÃ§ao do loop
+	
+ENTERQ_1:	addi t5,t5,304		# t5 pula para o pixel inicial da linha de baixo
+	addi t6,t6,320		# t6 pula para o pixel final da linha de baixo
+	addi t1,t1,1          	# atualiza o contador de quebras de linha
+	beq t1,t2,IMAGEM_1	# termina o carregamento da imagem se 17 quebras de linha ocorrerem
+	j LOOP2Q_1
+	
+# Setup dos dados necessarios para o main loop
+
+SETUP_MAIN_1:
+
+	li s0,2			# s0 = 2 (zera o contador de movimentações do Robozinho)
+	addi s2,s2,-1			
+	li s3,0			# s3 = 0 (zera o estado de movimentação atual do Robozinho)
+	li s5,0			# s5 = 0 (zera o estado de persrguição dos aliens)
+	li s6,1			# s6 = 2 (fase 2)
+	li s7,0			# s7 = 0 (zera o verificador de aliens)
+	li s4,17		# s4 = 17 (zera o estado de movimentação atual do inimigo1 : chase_mode)
+	li s9,17		# s9 = 17 (zera o estado de movimentação atual do inmimigo2 : chase_mode)
+	li s10,17 		# s10 = 17 (zera o estado de movimentação atual do inimigo3 : chase_mode)
+	li s11,17 		# s11 = 17 (zera o estado de movimentação atual do inimigo4 : chase_mode)
+	
+	la t0,CONTADOR_ASSUSTADO
+	li t3,-1		
+	sw t3,0(t0)
+	
+	li t1,0xFF00B4C8
+	la t0,POS_ROBOZINHO    # carrega o endereço de "POS_ROBOZINHO" no registrador t0 
+    	sw t1,0(t0)       	# guarda a word armazenada em t1 (posição atual do Roboziho) em "POS_ROBOZINHO"
+    	
+    	li t1,0xFF0078C8
+	la t0,POS_BLINKY    # carrega o endereço de "POS_ROBOZINHO" no registrador t0 
+    	sw t1,0(t0)       	# guarda a word armazenada em t1 (posição atual do Roboziho) em "POS_ROBOZINHO"
+    	
+    	li t1,0xFF009BC8
+	la t0,POS_PINK    # carrega o endereço de "POS_ROBOZINHO" no registrador t0 
+    	sw t1,0(t0)       	# guarda a word armazenada em t1 (posição atual do Roboziho) em "POS_ROBOZINHO"
+    	
+    	li t1,0xFF009BB8
+	la t0,POS_INKY    # carrega o endereço de "POS_ROBOZINHO" no registrador t0 
+    	sw t1,0(t0)       	# guarda a word armazenada em t1 (posição atual do Roboziho) em "POS_ROBOZINHO"
+    	
+    	li t1,0xFF009BD8
+	la t0,POS_CLYDE    # carrega o endereço de "POS_ROBOZINHO" no registrador t0 
+    	sw t1,0(t0)       	# guarda a word armazenada em t1 (posição atual do Roboziho) em "POS_ROBOZINHO"
+	
+	j MAINL
+
 ###########################
 ##### DADOS DA FASE 2 #####
 ###########################
 
-FASE2:  li s6,2
+FASE2:  addi s2,s2,1
+	li s1,0
+
+RESET_FASE2:
+	
+	li s6,2
 
 	li a0,3000
 	li a7,32           	# define a chamada de syscal para pausa
@@ -2483,24 +3036,24 @@ FASE2:  li s6,2
 # Carrega a imagem1 (mapa2) no frame 0
 	
 IMG1_2:	la t4, mapa2		# t4 cerrega endereÃ§o do mapa a fim de comparaÃ§Ã£o
-	li s1,0xFF000000	# s1 = endereco inicial da Memoria VGA - Frame 0
-	li s2,0xFF012C00	# s2 = endereco final da Memoria VGA - Frame 0
+	li t5,0xFF000000	# t5 = endereco inicial da Memoria VGA - Frame 0
+	li t6,0xFF012C00	# t6 = endereco final da Memoria VGA - Frame 0
 	la s0,mapa2		# s0 = endereÃ§o dos dados do mapa 1
 	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
 	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
 	
 LOOP1_2: 
-	beq s1,s2,IMAGEM_2	# se s1 = Ãºltimo endereÃ§o da Memoria VGA, saia do loop
+	beq t5,t6,IMAGEM_2	# se t5 = Ãºltimo endereÃ§o da Memoria VGA, saia do loop
 	lw t0,0(s0)		# le uma word do endereÃ§o s0 (le 4 pixels da imagem)
-	sw t0,0(s1)		# escreve a word na memÃ³ria VGA no endereÃ§o s1 (desenha 4 pixels na tela do Bitmap Display)
-	addi s1,s1,4		# soma 4 ao endereÃ§o s1 
+	sw t0,0(t5)		# escreve a word na memÃ³ria VGA no endereÃ§o t5 (desenha 4 pixels na tela do Bitmap Display)
+	addi t5,t5,4		# soma 4 ao endereÃ§o t5 
 	addi s0,s0,4		# soma 4 ao endereÃ§o s0
 	j LOOP1_2		# volta a verificar a condiÃ§ao do loop
 
 # Carrega a imagem2 (Robozinho1 - imagem 16x16) no frame 0
 
-IMG2_2:	li s1,0xFF00A0C8	# s1 = endereco inicial da primeira linha do Robozinho - Frame 0
-	li s2,0xFF00A0D8	# s2 = endereco final da primeira linha do Robozinho (inicial +16) - Frame 0
+IMG2_2:	li t5,0xFF00A0C8	# t5 = endereco inicial da primeira linha do Robozinho - Frame 0
+	li t6,0xFF00A0D8	# t6 = endereco final da primeira linha do Robozinho (inicial +16) - Frame 0
 	la s0,Robozinho1	# s0 = endereÃ§o dos dados do Robozinho1 (boca fechada)
 	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
 	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
@@ -2508,8 +3061,8 @@ IMG2_2:	li s1,0xFF00A0C8	# s1 = endereco inicial da primeira linha do Robozinho 
 	
 # Carrega a imagem3 (ALIEN1 - imagem16x16)
 
-IMG3_2:	li s1,0xFF0064C8	# s1 = endereco inicial da primeira linha do alien 1 - Frame 0 
-	li s2,0xFF0064D8	# s2 = endereco final da primeira linha do alien 1 (inicial +16) - Frame 0      
+IMG3_2:	li t5,0xFF0064C8	# t5 = endereco inicial da primeira linha do alien 1 - Frame 0 
+	li t6,0xFF0064D8	# t6 = endereco final da primeira linha do alien 1 (inicial +16) - Frame 0      
 	la s0,Inimigo1          # s0 = endereÃ§o dos dados do alien1
 	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
 	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
@@ -2517,8 +3070,8 @@ IMG3_2:	li s1,0xFF0064C8	# s1 = endereco inicial da primeira linha do alien 1 - 
 	
 # Carrega a imagem4 (ALIEN2 - imagem16x16)
 
-IMG4_2:	li s1,0xFF0087C8	# s1 = endereco inicial da primeira linha do alien 2 - Frame 0
-	li s2,0xFF0087D8	# s2 = endereco final da primeira linha do alien 2 - Frame 0
+IMG4_2:	li t5,0xFF0087C8	# t5 = endereco inicial da primeira linha do alien 2 - Frame 0
+	li t6,0xFF0087D8	# t6 = endereco final da primeira linha do alien 2 - Frame 0
 	la s0,Inimigo2          # s0 = endereÃ§o dos dados do alien2
 	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
 	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
@@ -2526,8 +3079,8 @@ IMG4_2:	li s1,0xFF0087C8	# s1 = endereco inicial da primeira linha do alien 2 - 
 
 # Carrega a imagem5 (ALIEN3 - imagem16x16)
 
-IMG5_2:	li s1,0xFF0087B8	# s1 = endereco inicial da primeira linha do alien 3 - Frame 0
-	li s2,0xFF0087C8	# s2 = endereco final da primeira linha do alien 3 - Frame 0
+IMG5_2:	li t5,0xFF0087B8	# t5 = endereco inicial da primeira linha do alien 3 - Frame 0
+	li t6,0xFF0087C8	# t6 = endereco final da primeira linha do alien 3 - Frame 0
 	la s0,Inimigo3          # s0 = endereÃ§o dos dados do alien3
 	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
 	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
@@ -2535,8 +3088,8 @@ IMG5_2:	li s1,0xFF0087B8	# s1 = endereco inicial da primeira linha do alien 3 - 
 	
 # Carrega a imagem6 (ALIEN4 - imagem16x16)
 
-IMG6_2:	li s1,0xFF0087D8	# s1 = endereco inicial da primeira linha do alien 4 - Frame 0
-	li s2,0xFF0087E8	# s2 = endereco final da primeira linha do alien 4 - Frame 0
+IMG6_2:	li t5,0xFF0087D8	# t5 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li t6,0xFF0087E8	# t6 = endereco final da primeira linha do alien 4 - Frame 0
 	la s0, Inimigo4         # s0 = endereÃ§o dos dados do alien4 
 	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
 	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
@@ -2544,19 +3097,59 @@ IMG6_2:	li s1,0xFF0087D8	# s1 = endereco inicial da primeira linha do alien 4 - 
 	
 # Carrega a imagem7 (mapa1 - colisao) no frame 1
 	
-IMG7_2:	li s1,0xFF100000	# s1 = endereco inicial da Memoria VGA - Frame 1
-	li s2,0xFF112C00	# s2 = endereco final da Memoria VGA - Frame 1
+IMG7_2:	li t5,0xFF100000	# t5 = endereco inicial da Memoria VGA - Frame 1
+	li t6,0xFF112C00	# t6 = endereco final da Memoria VGA - Frame 1
 	la s0,mapa2colisao	# s0 = endereÃ§o dos dados da colisao do mapa 1
 	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
 	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
 	
 LOOPCOL_2:
-	beq s1,s2,SETUP_MAIN_2	# se s1 = Ãºltimo endereÃ§o da Memoria VGA, saia do loop
+	beq t5,t6,IMAGEM_2	# se t5 = Ãºltimo endereÃ§o da Memoria VGA, saia do loop
 	lw t0,0(s0)		# le uma word do endereÃ§o s0 (le 4 pixels da imagem)
-	sw t0,0(s1)		# escreve a word na memÃ³ria VGA no endereÃ§o s1 (desenha 4 pixels na tela do Bitmap Display)
-	addi s1,s1,4		# soma 4 ao endereÃ§o s1 
+	sw t0,0(t5)		# escreve a word na memÃ³ria VGA no endereÃ§o t5 (desenha 4 pixels na tela do Bitmap Display)
+	addi t5,t5,4		# soma 4 ao endereÃ§o t5 
 	addi s0,s0,4		# soma 4 ao endereÃ§o s0
 	j LOOPCOL_2		# volta a verificar a condiÃ§ao do loop
+	
+# Carrega a imagem6 (Robozinho - imagem16x16)
+
+IMG8_2:	li t5,0xFF10A0C8	# t5 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li t6,0xFF10A0D8	# t6 = endereco final da primeira linha do alien 4 - Frame 0
+	li s0,0x69696969        # s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	j PRINT16_Q_2
+	
+# Carrega a imagem6 (ALIEN1 - imagem16x16)
+
+IMG9_2:	li t5,0xFF1064C8	# t5 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li t6,0xFF1064D8	# t6 = endereco final da primeira linha do alien 4 - Frame 0
+	li s0,0x70707070       	# s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	j PRINT16_Q_2
+
+# Carrega a imagem6 (ALIEN4 - imagem16x16)
+
+IMG10_2:li t5,0xFF1087C8	# t5 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li t6,0xFF1087D8	# t6 = endereco final da primeira linha do alien 4 - Frame 0
+	li s0,0x71717171        # s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	j PRINT16_Q_2
+
+# Carrega a imagem6 (ALIEN4 - imagem16x16)
+
+IMG11_2:li t5,0xFF1087B8	# t5 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li t6,0xFF1087C8	# t6 = endereco final da primeira linha do alien 4 - Frame 0
+	li s0,0x72727272        # s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	j PRINT16_Q_2
+
+# Carrega a imagem6 (ALIEN4 - imagem16x16)
+
+IMG12_2:li t5,0xFF1087D8	# t5 = endereco inicial da primeira linha do alien 4 - Frame 0
+	li t6,0xFF1087E8	# t6 = endereco final da primeira linha do alien 4 - Frame 0
+	li s0,0x73737373        # s0 = endereÃ§o dos dados do alien4 
+	mv t3, s0		# t3 = endereÃ§o inicial armazenado a fins de comparaÃ§Ã£o
+	j PRINT16_Q_2
 	
 # Compara os endereÃ§os para ver qual a proxima imagem a ser printada
 
@@ -2576,7 +3169,25 @@ IMAGEM_2:
 	beq t3, t4, IMG6_2	# se t3 contiver o endereÃ§o "Inimigo3", vÃ¡ para IMG6 (imprime a imagem6)
 	
 	la t4, Inimigo4		# t4 = endereÃ§o dos dados do alien 4
-	beq t3, t4, IMG7_2	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)	
+	beq t3, t4, IMG7_2	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	la t4, mapa2colisao
+	beq t3, t4, IMG8_2	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, 0x69696969
+	beq t3, t4, IMG9_2	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, 0x70707070
+	beq t3, t4, IMG10_2	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, 0x71717171
+	beq t3, t4, IMG11_2	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, 0x72727272
+	beq t3, t4, IMG12_2	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, 0x73737373
+	beq t3, t4, SETUP_MAIN_2	# se t3 contiver o endereÃ§o "Inimigo4", vÃ¡ para IMG7 (imprime a imagem7)	
 	
 # Loop que imprime imagens 16x16
 
@@ -2585,27 +3196,44 @@ PRINT16_2:
 	li t2,16		#inicializa o contador de quebra de linha para 16 quebras de linha
 	
 LOOP2_2: 	
-	beq s1,s2,ENTER_2	# se s1 atingir o fim da linha de pixels, quebre linha
+	beq t5,t6,ENTER_2	# se t5 atingir o fim da linha de pixels, quebre linha
 	lw t0,0(s0)		# le uma word do endereÃ§o s0 (le 4 pixels da imagem)
-	sw t0,0(s1)		# escreve a word na memÃ³ria VGA no endereÃ§o s1 (desenha 4 pixels na tela do Bitmap Display)
-	addi s1,s1,4		# soma 4 ao endereÃ§o s1
+	sw t0,0(t5)		# escreve a word na memÃ³ria VGA no endereÃ§o t5 (desenha 4 pixels na tela do Bitmap Display)
+	addi t5,t5,4		# soma 4 ao endereÃ§o t5
 	addi s0,s0,4		# soma 4 ao endereÃ§o s0
 	j LOOP2_2 		# volta a verificar a condiÃ§ao do loop
 	
 ENTER_2:	
-	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
-	addi s2,s2,320		# s2 pula para o pixel final da linha de baixo
+	addi t5,t5,304		# t5 pula para o pixel inicial da linha de baixo
+	addi t6,t6,320		# t6 pula para o pixel final da linha de baixo
 	addi t1,t1,1          	# atualiza o contador de quebras de linha
 	beq t1,t2,IMAGEM_2	# termina o carregamento da imagem se 17 quebras de linha ocorrerem
 	j LOOP2_2
+
+# Loop que imprime imagens 16x16
+
+PRINT16_Q_2:
+	li t1,0
+	li t2,16		#inicializa o contador de quebra de linha para 16 quebras de linha
+	
+LOOP2Q_2: beq t5,t6,ENTERQ_2	# se t5 atingir o fim da linha de pixels, quebre linha
+	sw s0,0(t5)		# escreve a word na memÃ³ria VGA no endereÃ§o t5 (desenha 4 pixels na tela do Bitmap Display)
+	addi t5,t5,4		# soma 4 ao endereÃ§o t5
+	j LOOP2Q_2 		# volta a verificar a condiÃ§ao do loop
+	
+ENTERQ_2:	addi t5,t5,304		# t5 pula para o pixel inicial da linha de baixo
+	addi t6,t6,320		# t6 pula para o pixel final da linha de baixo
+	addi t1,t1,1          	# atualiza o contador de quebras de linha
+	beq t1,t2,IMAGEM_2	# termina o carregamento da imagem se 17 quebras de linha ocorrerem
+	j LOOP2Q_2
 	
 # Setup dos dados necessarios para o main loop
 
 SETUP_MAIN_2:
 
 	li s0,2			# s0 = 2 (zera o contador de movimentações do Robozinho)
-	li s1,0			# s1 = 0 (zera o contador de pontos coletados)
-	li s2,3			# s2 = 3 (inicializa o contador de vidas do Robozinho com 3)
+#	li s1,0			# s1 = 0 (zera o contador de pontos coletados)
+	addi s2,s2,-1			# s2 = 3 (inicializa o contador de vidas do Robozinho com 3)
 	li s3,0			# s3 = 0 (zera o estado de movimentação atual do Robozinho)
 	li s5,0			# s5 = 0 (zera o estado de persrguição dos aliens)
 	li s6,2			# s6 = 2 (fase 2)
@@ -2614,6 +3242,10 @@ SETUP_MAIN_2:
 	li s9,17		# s9 = 17 (zera o estado de movimentação atual do inmimigo2 : chase_mode)
 	li s10,17 		# s10 = 17 (zera o estado de movimentação atual do inimigo3 : chase_mode)
 	li s11,17 		# s11 = 17 (zera o estado de movimentação atual do inimigo4 : chase_mode)
+	
+	la t0,CONTADOR_ASSUSTADO
+	li t3,-1		
+	sw t3,0(t0)
 	
 	li t1,0xFF00B4C8
 	la t0,POS_ROBOZINHO    # carrega o endereço de "POS_ROBOZINHO" no registrador t0 
@@ -2640,4 +3272,4 @@ SETUP_MAIN_2:
 	
 .data 
 
-.include "../SYSTEM/SYSTEMv24.s"		# permite a utilização dos ecalls "1xx
+.include "SYSTEMv24.s"		# permite a utilização dos ecalls "1xx
