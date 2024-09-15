@@ -48,6 +48,8 @@ CONTADOR_ASSUSTADO: .word -1
 .include "mapa2.data"
 .include "mapa2colisao.data"
 .include "menuprincipal.data"
+.include "telawin.data"
+.include "telalose.data"
 .include "Robozinho1.data"
 .include "Robozinho2.data"
 .include "Robozinho1forte.data"
@@ -324,7 +326,7 @@ ENTERQ:	addi s1,s1,304		# s1 pula para o pixel inicial da linha de baixo
 SETUP_MAIN:
 
 	li s0,2			# s0 = 0 (zera o contador de movimentaÃ§Ãµes do Robozinho)
-	li s1,102		# s1 = 0 (zera o contador de pontos coletados)
+	li s1,0			# s1 = 0 (zera o contador de pontos coletados)
 	li s2,3			# s2 = 3 (inicializa o contador de vidas do Robozinho com 3)
 	li s3,0			# s3 = 0 (zera o estado de movimentaÃ§Ã£o atual do Robozinho)
 	li s5,0			# s5 = 0 (zera o estado de persrguiÃ§Ã£o dos aliens)
@@ -1703,6 +1705,7 @@ VERFASE:li t0,1
 DERROTAC: jal zero, DERROTA
 VITORIAC: jal zero, VITORIA
 FASE2C: jal zero, FASE2
+##################################
 # Parte do codigo que lida com a movimentaÃ§Ã£o do Robozinho
 
 ROBOZINHO:
@@ -1715,8 +1718,12 @@ ROBOZINHO:
 	li a4,0 		# carrega em a4 o frame onde a string deve ser printada (Frame 0 da memoria VGA)
 	ecall			# realiza o ecall
 	
+	mv t0,s1
+	li t1,10
+	mul t0,t0,t1
+	
 	li a7,101		# carrega em a7 o serviÃ§o 101 do ecall (print integer on bitmap display)
-	mv a0,s1		# carrega em a0 o valor do inteiro a ser printado (s1 = pontuaÃ§Ã£o atual do jogador)
+	mv a0,t0		# carrega em a0 o valor do inteiro a ser printado (s1 = pontuaÃ§Ã£o atual do jogador)
 	li a1,60		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 60)
         li a2,2			# carrega em a1 a linha a partir da qual o inteiro vai ser printado (linha 2)
 	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
@@ -1761,7 +1768,20 @@ FASE:	li t0,0xFF200000	# carrega o endereÃ§o de controle do KDMMIO ("teclado")
   	lw t1,4(t0)		# le o valor da tecla pressionada e guarda em t1
   	li t2,1			# t2 = 1 (significa que o movimento a ser verificado veio de uma aÃ§Ã£o do jogador)
   	
-  	li t0,97		# carrega 97 (valor hex de "a") para t0		
+  	li t0,72		# carrega 97 (valor hex de "a") para t0		
+  	bne t1,t0,SKP_HACK1	# se t1 for igual a 97 (valor hex de "a"), vÃ¡ para VLCO (verify left colision)
+  	
+  	addi s1,s1,102
+  	
+SKP_HACK1:
+
+	li t0,75		# carrega 97 (valor hex de "a") para t0		
+  	bne t1,t0,SKP_HACK2	# se t1 for igual a 97 (valor hex de "a"), vÃ¡ para VLCO (verify left colision)
+  	
+  	addi s1,s1,143
+  	
+SKP_HACK2:
+	li t0,97		# carrega 97 (valor hex de "a") para t0		
   	beq t1,t0,VLCO		# se t1 for igual a 97 (valor hex de "a"), vÃ¡ para VLCO (verify left colision)
   	
   	li t0,119		# carrega 119 (valor hex de "w") para t0
@@ -2769,11 +2789,51 @@ VERFASE_B:
 	li t0,1
 	beq s6,t0,FASE1
 	jal zero, RESET_FASE2
+	
+# Mostra a tela de derrota
 
-DERROTA:li a7, 10
+DERROTA:li s1,0xFF000000	# s1 = endereco inicial da Memoria VGA - Frame 0
+	li s2,0xFF012C00	# s2 = endereco final da Memoria VGA - Frame 0
+	la s0,telalose		# s0 = endereÃ§o dos dados do mapa 1
+	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
+
+LOOPL: 	beq s1,s2,LOOPLOSE		# se s1 = Ãºltimo endereÃ§o da Memoria VGA, saia do loop
+	lw t0,0(s0)		# le uma word do endereÃ§o s0 (le 4 pixels da imagem)
+	sw t0,0(s1)		# escreve a word na memÃ³ria VGA no endereÃ§o s1 (desenha 4 pixels na tela do Bitmap Display)
+	addi s1,s1,4		# soma 4 ao endereÃ§o s1 
+	addi s0,s0,4		# soma 4 ao endereÃ§o s0
+	j LOOPL			# volta a verificar a condiÃ§ao do loop
+
+LOOPLOSE:li t2,0xFF200000	# carrega o endereÃ§o de controle do KDMMIO ("teclado")
+	lw t0,0(t2)		# le uma word a partir do endereÃ§o de controle do KDMMIO
+	andi t0,t0,0x0001	# mascara todos os bits de t0 com exceÃ§ao do bit menos significativo
+   	bne t0,zero,CLSL   	# se o BMS de t0 não for 0 (há tecla pressionada), pule para MAPA1
+   	j LOOPLOSE
+
+CLSL:	li a7, 10
 	ecall	
 	
-VITORIA:li a7, 10
+# Mostra a tela de vitoria
+	
+VITORIA:li s1,0xFF000000	# s1 = endereco inicial da Memoria VGA - Frame 0
+	li s2,0xFF012C00	# s2 = endereco final da Memoria VGA - Frame 0
+	la s0,telawin		# s0 = endereÃ§o dos dados do mapa 1
+	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
+
+LOOPV: 	beq s1,s2,LOOPVIC		# se s1 = Ãºltimo endereÃ§o da Memoria VGA, saia do loop
+	lw t0,0(s0)		# le uma word do endereÃ§o s0 (le 4 pixels da imagem)
+	sw t0,0(s1)		# escreve a word na memÃ³ria VGA no endereÃ§o s1 (desenha 4 pixels na tela do Bitmap Display)
+	addi s1,s1,4		# soma 4 ao endereÃ§o s1 
+	addi s0,s0,4		# soma 4 ao endereÃ§o s0
+	j LOOPV			# volta a verificar a condiÃ§ao do loop
+
+LOOPVIC:li t2,0xFF200000	# carrega o endereÃ§o de controle do KDMMIO ("teclado")
+	lw t0,0(t2)		# le uma word a partir do endereÃ§o de controle do KDMMIO
+	andi t0,t0,0x0001	# mascara todos os bits de t0 com exceÃ§ao do bit menos significativo
+   	bne t0,zero,CLSV   	# se o BMS de t0 não for 0 (há tecla pressionada), pule para MAPA1
+   	j LOOPVIC
+
+CLSV:	li a7, 10
 	ecall
 	
 ###########################
