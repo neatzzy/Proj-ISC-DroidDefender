@@ -1756,7 +1756,7 @@ VERVIC1:li t0,103
 	bge s1,t0,FASE2C
 	j FASE
 	
-VERVIC2:li t0,144
+VERVIC2:li t0,140
 	bge s1,t0,VITORIAC
 	j FASE
 	
@@ -1778,9 +1778,10 @@ SKP_HACK1:
 	li t0,75		# carrega 97 (valor hex de "a") para t0		
   	bne t1,t0,SKP_HACK2	# se t1 for igual a 97 (valor hex de "a"), vÃ¡ para VLCO (verify left colision)
   	
-  	addi s1,s1,143
+  	addi s1,s1,139
   	
 SKP_HACK2:
+
 	li t0,97		# carrega 97 (valor hex de "a") para t0		
   	beq t1,t0,VLCO		# se t1 for igual a 97 (valor hex de "a"), vÃ¡ para VLCO (verify left colision)
   	
@@ -1993,9 +1994,13 @@ VERWAY: li t0,2			# t0 = 2
 	
 # Realiza a movimentaÃ§Ã£o do Robozinho atraves dos portais
 
-LPORTAL: j FIM
+LPORTAL:li a4,2121
+	li s3,1			# se nenhuma colisÃ£o foi detectada, movimentaÃ§Ã£o atual = 1 (esquerda)
+	j VLP			# se nenhuma colisÃ£o foi detectada, vÃ¡ para VLP (Verify Left Point)
 
-RPORTAL: j FIM
+RPORTAL:li a4,2222
+	li s3,4			# se nenhuma colisÃ£o foi detectada, movimentaÃ§Ã£o atual = 4 (direita)
+	j VRP			# se nenhuma colisÃ£o foi detectada, vÃ¡ para VRP (Verify Right Point)
 	
 # Verifica a colisÃ£o com pontos e incrementa o contador de pontos (extremamente nÃ£o otimizado, mas eh oq ta tendo pra hj)
 
@@ -2641,7 +2646,13 @@ MI:	li a0,40		# a0 = 40 (carrega mi para a0)
 	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
 	ecall			# realiza o ecall
 
-SIB:	li t0,1			# carrega 1 para t0
+SIB:	li t0,2121		# carrega 1 para t0
+  	beq a4,t0,PORLFT	# se s3 for igual a 1 (valor de movimento atual para a esquerda), vÃ¡ para MOVLFT
+  	
+  	li t0,2222		# carrega 1 para t0
+  	beq a4,t0,PORRGHT	# se s3 for igual a 1 (valor de movimento atual para a esquerda), vÃ¡ para MOVLFT
+
+	li t0,1			# carrega 1 para t0
   	beq s3,t0,MOVLFT	# se s3 for igual a 1 (valor de movimento atual para a esquerda), vÃ¡ para MOVLFT
   	
   	li t0,2			# carrega 2 para t0
@@ -2654,6 +2665,12 @@ SIB:	li t0,1			# carrega 1 para t0
 	beq s3,t0,MOVRGHT	# se s3 for igual a 4 (valor de movimento atual para a direita), vÃ¡ para MOVRGHT
 	
 # Carrega em t2 o offset correspondente a cada direÃ§Ã£o de movimento
+
+PORLFT:	li t2,4916		# t2 = 5124 (volta t1 16 linhas e vai 4 pixels para a esquerda -> pixel inicial - 4) 
+	j MOVROB		# pule para MOVROB (movimenta o Robozinho)
+
+PORRGHT:li t2,5324		# t2 = 5124 (volta t1 16 linhas e vai 4 pixels para a esquerda -> pixel inicial - 4) 
+	j MOVROB		# pule para MOVROB (movimenta o Robozinho)
 	
 MOVLFT: li t2,5124		# t2 = 5124 (volta t1 16 linhas e vai 4 pixels para a esquerda -> pixel inicial - 4) 
 	j MOVROB		# pule para MOVROB (movimenta o Robozinho)
