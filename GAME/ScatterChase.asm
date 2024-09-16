@@ -12,7 +12,7 @@
 #			 Earth's Last Sentinel				#
 #########################################################################
 
-.include "MACROSv24.s" 		# permite a utilizaÃ§Ã£o dos ecalls "1xx"
+.include "../SYSTEM/MACROSv24.s" 		# permite a utilizaÃ§Ã£o dos ecalls "1xx"
 	
 .data			
 
@@ -43,25 +43,25 @@ CONTADOR_ASSUSTADO: .word -1
 
 # inclusÃ£o das imagens 
 
-.include "mapa1.data"
-.include "mapa1colisao.data"
-.include "mapa2.data"
-.include "mapa2colisao.data"
-.include "menuprincipal.data"
-.include "telawin.data"
-.include "telalose.data"
-.include "Robozinho1.data"
-.include "Robozinho2.data"
-.include "Robozinho1forte.data"
-.include "Robozinho2forte.data"
-.include "Robozinho1preto.data"
-.include "Inimigo1.data"
-.include "Inimigo2.data"
-.include "Inimigo3.data"
-.include "Inimigo4.data"
-.include "InimigoAssustado.data"
-.include "horpoint.data"
-.include "vertpoint.data"
+.include "../DATA/mapa1.data"
+.include "../DATA/mapa1colisao.data"
+.include "../DATA/mapa2.data"
+.include "../DATA/mapa2colisao.data"
+.include "../DATA/menuprincipal.data"
+.include "../DATA/telawin.data"
+.include "../DATA/telalose.data"
+.include "../DATA/Robozinho1.data"
+.include "../DATA/Robozinho2.data"
+.include "../DATA/Robozinho1forte.data"
+.include "../DATA/Robozinho2forte.data"
+.include "../DATA/Robozinho1preto.data"
+.include "../DATA/Inimigo1.data"
+.include "../DATA/Inimigo2.data"
+.include "../DATA/Inimigo3.data"
+.include "../DATA/Inimigo4.data"
+.include "../DATA/InimigoAssustado.data"
+.include "../DATA/horpoint.data"
+.include "../DATA/vertpoint.data"
 
 .text
 
@@ -1753,11 +1753,11 @@ ROBOZINHO:
 	j VERVIC2
 	
 VERVIC1:li t0,103
-	beq s1,t0,FASE2C
+	bge s1,t0,FASE2C
 	j FASE
 	
 VERVIC2:li t0,144
-	beq s1,t0,VITORIAC
+	bge s1,t0,VITORIAC
 	j FASE
 	
 FASE:	li t0,0xFF200000	# carrega o endereÃ§o de controle do KDMMIO ("teclado")
@@ -3576,4 +3576,4 @@ SETUP_MAIN_2:
 	
 .data 
 
-.include "SYSTEMv24.s"		# permite a utilizaÃ§Ã£o dos ecalls "1xx
+.include "../SYSTEM/SYSTEMv24.s"		# permite a utilizaÃ§Ã£o dos ecalls "1xx
