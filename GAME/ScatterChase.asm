@@ -1979,6 +1979,9 @@ VERWAY: li t0,2			# t0 = 2
 	beq t2,t0,FIM		# se t2 = 2 (movimento nÃ£o causado pelo jogador), vÃ¡ para FIM (nÃ£o precisa checar segunda colisÃ£o)
 	
 	li t2,2			# atualiza o valor de t2 para indicar que o movimento a ser checado nÃ£o Ã© mais causado pelo jogador
+
+	li t0,0
+  	beq s3,t0,FIM
   	
   	li t0,1			# carrega 1 para t0
   	beq s3,t0,VLCO		# se s3 for igual a 1 (valor de movimento atual para a esquerda), vÃ¡ para VLCO (verify left colision)
