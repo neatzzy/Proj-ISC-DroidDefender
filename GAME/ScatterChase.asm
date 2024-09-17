@@ -12,7 +12,7 @@
 #			 Earth's Last Sentinel				#
 #########################################################################
 
-.include "../SYSTEM/MACROSv24.s" 		# permite a utilizaÃ§Ã£o dos ecalls "1xx"
+.include "MACROSv24.s" 		# permite a utilizaÃ§Ã£o dos ecalls "1xx"
 	
 .data			
 
@@ -32,6 +32,8 @@ NOTAS2: 42, 923, 49, 923, 42, 923, 49, 923, 44, 923, 52, 923, 45, 923, 49, 923, 
 
 STR: .string "PONTOS: "
 STR2: .string "VIDAS: "
+STR3: .string "+200"
+STR4: .string "    "
 
 POS_ROBOZINHO: .word 0xFF00B4C8 # endereco inicial da linha diretamente abaixo do Robozinho - posiÃ§Ã£o inicial/atual do Robozinho
 POS_BLINKY: .word 0xFF0078C8	# coordenada inicial do alien verde claro (blinky)
@@ -41,27 +43,29 @@ POS_CLYDE: .word 0xFF009BD8	# coordenada inicial do alien laranja (clyde)
 
 CONTADOR_ASSUSTADO: .word -1
 
+PONTOS: .word 0
+
 # inclusÃ£o das imagens 
 
-.include "../DATA/mapa1.data"
-.include "../DATA/mapa1colisao.data"
-.include "../DATA/mapa2.data"
-.include "../DATA/mapa2colisao.data"
-.include "../DATA/menuprincipal.data"
-.include "../DATA/telawin.data"
-.include "../DATA/telalose.data"
-.include "../DATA/Robozinho1.data"
-.include "../DATA/Robozinho2.data"
-.include "../DATA/Robozinho1forte.data"
-.include "../DATA/Robozinho2forte.data"
-.include "../DATA/Robozinho1preto.data"
-.include "../DATA/Inimigo1.data"
-.include "../DATA/Inimigo2.data"
-.include "../DATA/Inimigo3.data"
-.include "../DATA/Inimigo4.data"
-.include "../DATA/InimigoAssustado.data"
-.include "../DATA/horpoint.data"
-.include "../DATA/vertpoint.data"
+.include "mapa1.data"
+.include "mapa1colisao.data"
+.include "mapa2.data"
+.include "mapa2colisao.data"
+.include "menuprincipal.data"
+.include "telawin.data"
+.include "telalose.data"
+.include "Robozinho1.data"
+.include "Robozinho2.data"
+.include "Robozinho1forte.data"
+.include "Robozinho2forte.data"
+.include "Robozinho1preto.data"
+.include "Inimigo1.data"
+.include "Inimigo2.data"
+.include "Inimigo3.data"
+.include "Inimigo4.data"
+.include "InimigoAssustado.data"
+.include "horpoint.data"
+.include "vertpoint.data"
 
 .text
 
@@ -1690,14 +1694,275 @@ CLYDE_MOV:
 # Se o alien colidir com o Robozinho
 
 COLIDIU_R:
-	la a0,CONTADOR_ASSUSTADO
-	lw a1,0(a0)
-	li a0,-1
-	beq a0,a1,VERFASE
+
+	li t0,1				# t0 = 1
+	beq s7, t0, BLINKY_COLIDIU	# se s7 = 1, entÃ£o vai para BLINKY_COLIDIU
+		
+	li t0,2				# t0 = 2
+	beq s7, t0, PINK_COLIDIU	# se s7 = 2, entÃ£o vai para PINK_COLIDIU
+		
+	li t0,3				# t0 = 3
+	beq s7, t0, INKY_COLIDIU	# se s7 = 3, entÃ£o vai para INKY_COLIDIU
+		
+	li t0,4				# t0 = 4
+	beq s7, t0, CLYDE_COLIDIU	# se s7 = 4, entÃ£o vai para CLYDE_COLIDIU
 	
-	mv a1, a4		# a1 = a4
-	jalr x0, a3, 0 		# retorna para verificar se outro pixel detectou colisÃƒÂ£o
 	
+BLINKY_COLIDIU:
+	mv a1, s4			# a1 = s4
+	jal zero, COLIDIU_R_2
+
+PINK_COLIDIU:
+	mv a1, s9			# a1 = s9
+	jal zero, COLIDIU_R_2
+
+INKY_COLIDIU:
+	mv a1, s10			# a1 = s10
+	jal zero, COLIDIU_R_2
+
+CLYDE_COLIDIU:
+	mv a1, s11			# a1 = s11
+	
+COLIDIU_R_2:
+	li a0,38			# a0 = 38
+	blt a1,a0,VERFASE		# se a1 for menor que o a0 então o alien estava no sdcatter/chase mode, então o robozino perdeu vida
+	
+VER_ALIEN_2:				# se não, ve qual o alien e respawna ele
+	
+	la t0, PONTOS
+	lw t1, 0(t0)
+	addi t1,t1,200
+	sw t1, 0(t0)
+	
+	mv t0,a4
+
+	li a7,104		# carrega em a7 o serviÃ§o 101 do ecall (print integer on bitmap display)
+	la a0,STR3		# carrega em a0 o valor do inteiro a ser printado (s1 = pontuaÃ§Ã£o atual do jogador)
+	li a1,60		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 60)
+        li a2,11		# carrega em a1 a linha a partir da qual o inteiro vai ser printado (linha 2)
+	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
+	li a4,0			# carrega em a4 o frame onde o inteiro deve ser printado (Frame 0 da memoria VGA)
+	ecall			# realiza o ecall
+	
+	li a0,61		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,80		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,73		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,80		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,100		# a3 = 50 (volume da nota)
+	li a7,32		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,59		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,80		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,71		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,80		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,100		# a3 = 50 (volume da nota)
+	li a7,32		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,61		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,80		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,73		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,80		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,200		# a3 = 50 (volume da nota)
+	li a7,32		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a7,104		# carrega em a7 o serviÃ§o 101 do ecall (print integer on bitmap display)
+	la a0,STR4		# carrega em a0 o valor do inteiro a ser printado (s1 = pontuaÃ§Ã£o atual do jogador)
+	li a1,60		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 60)
+        li a2,11		# carrega em a1 a linha a partir da qual o inteiro vai ser printado (linha 2)
+	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
+	li a4,0			# carrega em a4 o frame onde o inteiro deve ser printado (Frame 0 da memoria VGA)
+	ecall			# realiza o ecall
+	
+	mv a4,t0
+	
+	li t0,1				# t0 = 1
+	beq s7, t0, BLINKY_MORTE	# se s7 = 1, entÃ£o vai para BLINKY_MORTE
+		
+	li t0,2				# t0 = 2
+	beq s7, t0, PINK_MORTE		# se s7 = 2, entÃ£o vai para PINK_MORTE
+		
+	li t0,3				# t0 = 3
+	beq s7, t0, INKY_MORTE		# se s7 = 3, entÃ£o vai para INKY_MORTE
+		
+	li t0,4				# t0 = 4
+	beq s7, t0, CLYDE_MORTE		# se s7 = 4, entÃ£o vai para CLYDE_MORTE
+
+BLINKY_MORTE:
+
+	li t0, 17			# t0 = 17
+	rem t1, s4, t0			# t1 = resto da movimentação
+	li s4, 34			# s4 = 34 
+	add s4, s4, t1			# s4 = 34 + t1
+	
+	li t0, 0xFF009BC8		# posição dentro da caixa
+	la t1, POS_BLINKY		# t1 = POS_BLINKY
+	sw t0, 0(t1)			# POS_BLINKY = posição dentro da caixa
+	
+	jal zero, SETUP_DELETE_MORTE
+	
+PINK_MORTE:
+
+	li t0, 17			# t0 = 17
+	rem t1, s9, t0			# t1 = resto da movimentação
+	li s9, 34			# s9 = 34 
+	add s9, s9, t1			# s9 = 34 + t1
+	
+	li t0, 0xFF009BC8		# posição dentro da caixa
+	la t1, POS_PINK		# t1 = POS_PINK
+	sw t0, 0(t1)			# POS_PINK = posição dentro da caixa
+	
+	jal zero, SETUP_DELETE_MORTE
+	
+INKY_MORTE:
+
+	li t0, 17			# t0 = 17
+	rem t1, s10, t0			# t1 = resto da movimentação
+	li s10, 34			# s10 = 34 
+	add s10, s10, t1		# s10 = 34 + t1
+	
+	li t0, 0xFF009BC8		# posição dentro da caixa
+	la t1, POS_INKY			# t1 = POS_INKY
+	sw t0, 0(t1)			# POS_INKY = posição dentro da caixa
+	
+	jal zero, SETUP_DELETE_MORTE
+	
+CLYDE_MORTE:
+		
+	li t0, 17			# t0 = 17
+	rem t1, s11, t0			# t1 = resto da movimentação
+	li s11, 34			# s11 = 34 
+	add s11, s11, t1		# s11 = 34 + t1
+	
+	li t0, 0xFF009BC8		# posição dentro da caixa
+	la t1, POS_CLYDE		# t1 = POS_CLYDE
+	sw t0, 0(t1)			# POS_CLYDE = posição dentro da caixa
+
+SETUP_DELETE_MORTE:
+	
+	mv t1,a4		# t1 = a4 (posiÃ§Ã£o atual do alien - pixel inicial da linha)
+	addi t2,a4,16		# t2 = a4 + 16 (posiÃ§Ã£o atual do alien - pixel inicial da linha)
+	mv a5,t6		# a5 = t6 (direÃ§Ã£o atual de movimentaÃ§Ã£o do alien)
+	
+DELETE_A_MORTE:
+
+	li t5,0	
+	li t6,16		# reinicia o contador para 16 quebras de linha
+	
+	li t4, 5120		# t4 = 5120
+	sub t1, t1, t4		# volta t1 16 linhas (pixel inicial da primeira linha) 
+	sub t2, t2, t4		# volta t2 16 linhas (pixel final da primeira linha)
+	
+	li t0,1
+	beq s6,t0,DELFS1_MORTE
+	la t3,mapa2
+	j DELFS2_MORTE
+DELFS1_MORTE:	
+	la t3,mapa1		# carrega em t3 o endereÃ§o dos dados do mapa1
+DELFS2_MORTE:	
+	addi t3,t3,8		# t3 = endereÃ§o do primeiro pixel do mapa1 (depois das informaÃ§Ãµes de nlin ncol)
+	li t0,0xFF000000	# t0 = 0xFF000000 (carrega em t0 o endereÃ§o base da memoria VGA)
+	sub t0,t1,t0		# t0 = t1 - 0xFF000000 (subtrai o endereÃ§o base de t1, posiÃ§Ã£o atual do alien)
+	add t3,t3,t0		# t3 = t3 + t0 (carrega em t3 o endereÃ§o do pixel do mapa1 no segmento de dados sobre o qual o alien esta localizado)
+	
+DELLOOP_A_MORTE:
+	beq t1,t2,ENTER2_A_MORTE# se t1 atingir o fim da linha de pixels, quebre linha
+	lw t0,0(t3)		# le uma word do endereÃ§o t3 (le 4 pixels do mapa1 no segmento de dados)
+	sw t0,0(t1)		# escreve a word (4 pixels do mapa1) na memÃ³ria VGA
+	addi t1,t1,4		# soma 4 ao endereÃ§o t1
+	addi t3,t3,4		# soma 4 ao endereÃ§o t3
+	j DELLOOP_A_MORTE	# volta a verificar a condiÃ§ao do loop
+
+ENTER2_A_MORTE:
+	addi t1,t1,304		# t1 (a4) pula para o pixel inicial da linha de baixo da memoria VGA
+	addi t3,t3,304		# t1 pula para o pixel inicial da linha de baixo do segmento de dados 
+	addi t2,t2,320		# t2 (a4 + 16) pula para o pixel final da linha de baixo da memoria VGA
+	addi t5,t5,1          	# atualiza o contador de quebras de linha
+	beq t5,t6,SETUP_DELETE_COL_MORTE # termina o carregamento da imagem se 16 quebras de linha ocorrerem e vai para o loop de carregamento da imagem
+	j DELLOOP_A_MORTE		# pula para delloop
+	
+# Deleta o personagem caso ele morra
+
+SETUP_DELETE_COL_MORTE:
+	
+	li t0,0x100000
+	add t1,a4,t0
+	addi t2,t1,16		# t2 = a4 + 16 (posiÃ§Ã£o atual do alien - pixel inicial da linha)
+	
+DELETE_A_COL_MORTE:
+
+	li t5,0	
+	li t6,16		# reinicia o contador para 16 quebras de linha
+	
+	li t4, 5120		# t4 = 5120
+	sub t1, t1, t4		# volta t1 16 linhas (pixel inicial da primeira linha) 
+	sub t2, t2, t4		# volta t2 16 linhas (pixel final da primeira linha)
+	
+	li t0,1
+	beq s6,t0,DELFS1_COL_MORTE
+	la t3,mapa2colisao
+	j DELFS2_COL_MORTE
+	
+DELFS1_COL_MORTE:	
+	la t3,mapa1colisao		# carrega em t3 o endereÃ§o dos dados do mapa1
+
+DELFS2_COL_MORTE:	
+	addi t3,t3,8		# t3 = endereÃ§o do primeiro pixel do mapa1 (depois das informaÃ§Ãµes de nlin ncol)
+	li t0,0xFF100000	# t0 = 0xFF000000 (carrega em t0 o endereÃ§o base da memoria VGA)
+	sub t0,t1,t0		# t0 = t1 - 0xFF000000 (subtrai o endereÃ§o base de t1, posiÃ§Ã£o atual do alien)
+	add t3,t3,t0		# t3 = t3 + t0 (carrega em t3 o endereÃ§o do pixel do mapa1 no segmento de dados sobre o qual o alien esta localizado)
+	
+DELLOOP_A_COL_MORTE:
+	beq t1,t2,ENTER2_A_COL_MORTE	# se t1 atingir o fim da linha de pixels, quebre linha
+	lw t0,0(t3)		# le uma word do endereÃ§o t3 (le 4 pixels do mapa1 no segmento de dados)
+	sw t0,0(t1)		# escreve a word (4 pixels do mapa1) na memÃ³ria VGA
+	addi t1,t1,4		# soma 4 ao endereÃ§o t1
+	addi t3,t3,4		# soma 4 ao endereÃ§o t3
+	j DELLOOP_A_COL_MORTE		# volta a verificar a condiÃ§ao do loop
+
+ENTER2_A_COL_MORTE:
+	addi t1,t1,304		# t1 (a4) pula para o pixel inicial da linha de baixo da memoria VGA
+	addi t3,t3,304		# t1 pula para o pixel inicial da linha de baixo do segmento de dados 
+	addi t2,t2,320		# t2 (a4 + 16) pula para o pixel final da linha de baixo da memoria VGA
+	addi t5,t5,1          	# atualiza o contador de quebras de linha
+	beq t5,t6,FIM_MORTE	# termina o carregamento da imagem se 16 quebras de linha ocorrerem e vai para o loop de carregamento da imagem
+	j DELLOOP_A_COL_MORTE	# pula para delloop
+	
+FIM_MORTE:
+	jal ROBOZINHO 		# vai para a movimentação do robozinho
+
 VERFASE:li t0,1
 	beq s6,t0,FASE1
 	jal zero, RESET_FASE2
@@ -1718,9 +1983,8 @@ ROBOZINHO:
 	li a4,0 		# carrega em a4 o frame onde a string deve ser printada (Frame 0 da memoria VGA)
 	ecall			# realiza o ecall
 	
-	mv t0,s1
-	li t1,10
-	mul t0,t0,t1
+	la t1, PONTOS
+	lw t0, 0(t1)
 	
 	li a7,101		# carrega em a7 o serviÃ§o 101 do ecall (print integer on bitmap display)
 	mv a0,t0		# carrega em a0 o valor do inteiro a ser printado (s1 = pontuaÃ§Ã£o atual do jogador)
@@ -1979,8 +2243,8 @@ VERWAY: li t0,2			# t0 = 2
 	beq t2,t0,FIM		# se t2 = 2 (movimento nÃ£o causado pelo jogador), vÃ¡ para FIM (nÃ£o precisa checar segunda colisÃ£o)
 	
 	li t2,2			# atualiza o valor de t2 para indicar que o movimento a ser checado nÃ£o Ã© mais causado pelo jogador
-
-	li t0,0
+  	
+  	li t0,0
   	beq s3,t0,FIM
   	
   	li t0,1			# carrega 1 para t0
@@ -2152,6 +2416,11 @@ NXTLINE:addi t3,t3,-1		# t3 = t3 - 1 (reduz o contador de linhas/colunas analisa
 	
 PONTO:  addi s1,s1,1		# incrementa o contador de pontos (a sessÃ£o a seguir toca uma triade de mi maior para cada ponto coletado)
 
+	la t5, PONTOS
+	lw t6, 0(t5)
+	addi t6,t6,10
+	sw t6, 0(t5)
+	
 	li a0,68		# a0 = 68 (carrega sol sustenido para a0)
 	li a1,100		# a1 = 100 (nota de duraÃ§Ã£o de 100 ms)
 	li a2,35		# a2 = 35 (timbre "electric bass")
@@ -2328,6 +2597,11 @@ DELR4:	addi t5,t5,8		# t5 = endereÃ§o do primeiro pixel do mapa1 (depois das i
 SPRPNT:	addi s1,s1,1		# incrementa o contador de pontos (a sessÃ£o a seguir toca uma triade de mi maior para cada ponto coletado)
 	
 	li s0,-1
+	
+	la t5, PONTOS
+	lw t6, 0(t5)
+	addi t6,t6,10
+	sw t6, 0(t5)
 	
 	la t0,CONTADOR_ASSUSTADO
 	li t3,0		
@@ -2759,52 +3033,49 @@ FIM:	jal zero, MAINL			# retorna ao loop principal
 # Se o Robozinho colidir com o Blinky ou vice-versa
 
 COL_BLINKY:
-	la t0,CONTADOR_ASSUSTADO
-	lw t1,0(t0)
-	li t0,-1
-	beq t0,t1,VERFASE_B
-	
-	la t0,POS_ROBOZINHO	# carrega o endereÃ§o de "POS_ROBOZINHO" no registrador t0
-	lw t1,0(t0)		# le a word guardada em "POS_ROBOZINHO" para t1 (t1 = posiÃ§Ã£o atual do Robozinho)
-	ret
-	
 
+	li a0,38			# a0 = 38
+	blt s4,a0,VERFASE_B		# se a1 for menor que o a0 então o alien estava no sdcatter/chase mode, então o robozino perdeu vida
+	la a0, POS_BLINKY		# a0 = pos_pink
+	lw a1, 0(a0)			# a1 = lw a0
+	mv a4, a1			# a4 = a1
+	li s7,1
+	jal VER_ALIEN_2		# se não, o blinky morreu
+	
 # Se o Robozinho colidir com o Blinky ou vice-versa
 
 COL_PINK:
-	la t0,CONTADOR_ASSUSTADO
-	lw t1,0(t0)
-	li t0,-1
-	beq t0,t1,VERFASE_B
-	
-	la t0,POS_ROBOZINHO	# carrega o endereÃ§o de "POS_ROBOZINHO" no registrador t0
-	lw t1,0(t0)		# le a word guardada em "POS_ROBOZINHO" para t1 (t1 = posiÃ§Ã£o atual do Robozinho)
-	ret
+	li a0,38			# a0 = 38
+	blt s9,a0,VERFASE_B		# se a1 for menor que o a0 então o alien estava no sdcatter/chase mode, então o robozino perdeu vida
+	la a0, POS_PINK		# a0 = pos_pink
+	lw a1, 0(a0)			# a1 = lw a0
+	mv a4, a1			# a4 = a1
+	li s7,2
+	jal VER_ALIEN_2		# se não, o pink morreu
 
-# Se o Robozinho colidir com o Blinky ou vice-versa
+# Se o Robozinho colidir com o Pink ou vice-versa
 
 COL_INKY:
-	la t0,CONTADOR_ASSUSTADO
-	lw t1,0(t0)
-	li t0,-1
-	beq t0,t1,VERFASE_B
+	li a0,38			# a0 = 38
+	blt s10,a0,VERFASE_B		# se a1 for menor que o a0 então o alien estava no sdcatter/chase mode, então o robozino perdeu vida
+	la a0, POS_INKY		# a0 = pos_inky
+	lw a1, 0(a0)			# a1 = lw a0
+	mv a4, a1			# a4 = a1
+	li s7,3
+	jal VER_ALIEN_2			# se não, o blinky morreu
 	
-	la t0,POS_ROBOZINHO	# carrega o endereÃ§o de "POS_ROBOZINHO" no registrador t0
-	lw t1,0(t0)		# le a word guardada em "POS_ROBOZINHO" para t1 (t1 = posiÃ§Ã£o atual do Robozinho)
-	ret
-
-# Se o Robozinho colidir com o Blinky ou vice-versa
+# Se o Robozinho colidir com o Clyde ou vice-versa
 
 COL_CLYDE:
-	la t0,CONTADOR_ASSUSTADO
-	lw t1,0(t0)
-	li t0,-1
-	beq t0,t1,VERFASE_B
+	li a0,38			# a0 = 38
+	blt s11,a0,VERFASE_B		# se a1 for menor que o a0 então o alien estava no sdcatter/chase mode, então o robozino perdeu vida
+	la a0, POS_CLYDE		# a0 = pos_clyde
+	lw a1, 0(a0)			# a1 = lw a0
+	mv a4, a1			# a4 = a1
+	li s7,4
+	jal VER_ALIEN_2		# se não, o blinky morreu
 	
-	la t0,POS_ROBOZINHO	# carrega o endereÃ§o de "POS_ROBOZINHO" no registrador t0
-	lw t1,0(t0)		# le a word guardada em "POS_ROBOZINHO" para t1 (t1 = posiÃ§Ã£o atual do Robozinho)
-	ret
-	
+
 VERFASE_B:
 	li t0,1
 	beq s6,t0,FASE1
@@ -3596,4 +3867,4 @@ SETUP_MAIN_2:
 	
 .data 
 
-.include "../SYSTEM/SYSTEMv24.s"		# permite a utilizaÃ§Ã£o dos ecalls "1xx
+.include "SYSTEMv24.s"		# permite a utilizaÃ§Ã£o dos ecalls "1xx
