@@ -70,11 +70,11 @@ ZERO_WORD: .word 0x00000000
 .include "../DATA/Inimigo3.data"
 .include "../DATA/Inimigo4.data"
 .include "../DATA/InimigoAssustado.data"
+.include "../DATA/Inimigobranco.data"
 .include "../DATA/horpoint.data"
 .include "../DATA/vertpoint.data"
 
 .text
-
 
 # Tenta abrir o arquivo "highscore.bin" para leitura se ele existir
 
@@ -597,8 +597,6 @@ CALCULO_TARGET:
 	blt a2, t0, CHASE_MODE	 	# se a2(Sx) < 38, estÃ¡ no chase mode
 	li t0, 55
 	blt a2, t0, FRIGHTENED_VERIF	 # se a2(Sx) < 55, estÃ¡ no frightened mode
-	li t0, 72
-	blt a2, t0, DEATH_MODE		# se a2(Sx) < 72, estÃ£ no death mode
 	
 TROCAR_MODO:
 
@@ -608,8 +606,6 @@ TROCAR_MODO:
 	blt a2, t0, SCATTER_MODE 	# se a2(Sx) < 38, estÃ¡ no chase mode, entÃ£o vamos para o scatter_mode
 	li t0, 58	
 	blt a2, t0, FRIGHTENED_VERIF    # se a2(Sx) < 38, estÃ¡ no frightened mode, entÃ£o nÃ£o muda
-	li t0, 72	
-	blt a2, t0, DEATH_MODE		# se a2(Sx) < 72, estÃ¡ no death mode, entÃ£o nÃ£o muda
 	
 FRIGHTENED_VERIF:
 
@@ -695,21 +691,6 @@ FRIGHTENED_MODE:
 	
 	li t0,4				# t0 = 4
 	beq s7, t0, CLYDE_FRIGHTENED	# se s7 = 4, entÃ£o vai para CLYDE_CHASE
-	
-DEATH_MODE:
-
-	li t0,1				# t0 = 1
-	beq s7, t0, BLINKY_DEATH	# se s7 = 1, entÃ£o vai para BLINKY_CHASE
-	
-	li t0,2				# t0 = 2
-	beq s7, t0, PINK_DEATH		# se s7 = 2, entÃ£o vai para PINK_CHASE
-	
-	li t0,3				# t0 = 3
-	beq s7, t0, INKY_DEATH		# se s7 = 3, entÃ£o vai para INKY_CHASE
-	
-	li t0,4				# t0 = 4
-	beq s7, t0, CLYDE_DEATH		# se s7 = 4, entÃ£o vai para CLYDE_CHASE
-	
 	
 # parametros necessarios:
 # t4: endereÃ§o do target
@@ -799,23 +780,35 @@ DIR_BLINKY:
 	
 SETUP_FRIGHTENED_BLINKY:
 
-	la a6, InimigoAssustado	# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
+	la t0, CONTADOR_ASSUSTADO	# carrega o valor de "CONTADOR_ASSUSTADO" no registrador t0	
+	lw t1, 0(t0)			# le a word guardada em "CONTADOR_ASSUSTADO" para t1 (t1 = contador do tempo no frightened_mode)
+	
+	li t2, 350			# alterna entre azul e branco
+	blt t1, t2, BLINKY_F_NORMAL	# se for menor que 150, continua no print normal frightened mode
+	j BLINKY_F_ALTERNADO
+	
+BLINKY_F_NORMAL:
+
+	la a6, InimigoAssustado		# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
+	mv t6, s4			# t6 = movimentaÃ§Ã£o do alien no presente
+	li s4, 51			# volta s4 para 51(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s4 posteriormente)
+	j SETUP_TARGET
+	
+BLINKY_F_ALTERNADO:	
+	
+	li t1, 2		# t1 = 2
+	rem t0, s0, t1		# t0 = s0%t1
+	beq t0, zero, B_AZUL	# se s0 for par, printa azul
+	la a6, Inimigobranco	# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
 	mv t6, s4		# t6 = movimentaÃ§Ã£o do alien no presente
 	li s4, 51		# volta s4 para 51(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s4 posteriormente)
+	j SETUP_TARGET
 	
+B_AZUL:
+	la a6, InimigoAssustado		# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
+	mv t6, s4			# t6 = movimentaÃ§Ã£o do alien no presente
+	li s4, 51			# volta s4 para 51(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s4 posteriormente)
 	j SETUP_TARGET		
-	
-BLINKY_DEATH: 			# target: dentro da caixa
-	
-	li t4, 0xFF009BC8	# t4 = endereÃ§o do target do Blinky(caixa)
-	mv t6, s4		# t6 = movimentaÃ§Ã£o do alien no presente
-	li s4, 68		# volta s4 para 68(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s4 posteriormente)
-	
-	la t0,POS_BLINKY	# carrega o endereÃ§o de "POS_BLINKY" no registrador t0
-	lw a4,0(t0)		# le a word guardada em "POS_BLINKY" para a4 (a4 = posiÃ§Ã£o atual do Blinky)
-	
-	la a6, Inimigo1		# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
-	j SETUP_TARGET		# pula para o setup do scatter_mode
 	
 # Inicializa os dados do alien a ser movimentado (pinky) 
 	
@@ -941,24 +934,35 @@ DIR_PINK:
 	
 SETUP_FRIGHTENED_PINK:
 
-	la a6, InimigoAssustado	# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
+	la t0, CONTADOR_ASSUSTADO	# carrega o valor de "CONTADOR_ASSUSTADO" no registrador t0	
+	lw t1, 0(t0)			# le a word guardada em "CONTADOR_ASSUSTADO" para t1 (t1 = contador do tempo no frightened_mode)
+	
+	li t2, 350			# alterna entre azul e branco
+	blt t1, t2, PINK_F_NORMAL	#se for menor que 150, continua no print normal frightened mode
+	j PINK_F_ALTERNADO
+	
+PINK_F_NORMAL:
+
+	la a6, InimigoAssustado		# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
+	mv t6, s9			# t6 = movimentaÃ§Ã£o do alien no presente
+	li s9, 51			# volta s4 para 51(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s4 posteriormente)
+	j SETUP_TARGET
+	
+PINK_F_ALTERNADO:	
+	
+	li t1, 2		# t1 = 2
+	rem t0, s0, t1		# t0 = s0%t1
+	beq t0, zero, P_AZUL	# se s0 for par, printa azul
+	la a6, Inimigobranco	# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
 	mv t6, s9		# t6 = movimentaÃ§Ã£o do alien no presente
 	li s9, 51		# volta s4 para 51(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s4 posteriormente)
+	j SETUP_TARGET
 	
-	j SETUP_TARGET	
-	
-PINK_DEATH:			# target: dentro da caixa
-	
-	li t4, 0xFF009BC8	# t4 = endereÃ§o do target do Pink(caixa) 
-	mv t6, s9		# t6 = movimentaÃ§Ã£o do alien no presente
-	li s9, 68		# volta s9 para 68(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s9 posteriormente)
-	
-	la t0,POS_PINK		# carrega o endereÃ§o de "POS_PINK" no registrador t0
-	lw a4,0(t0)		# le a word guardada em "POS_PINK" para t1 (t1 = posiÃ§Ã£o atual do Pink)
-	
-	la a6, Inimigo2		# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
-	
-	j SETUP_TARGET		# pula para o setup do scatter_mode	
+P_AZUL:
+	la a6, InimigoAssustado		# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
+	mv t6, s9			# t6 = movimentaÃ§Ã£o do alien no presente
+	li s9, 51			# volta s4 para 51(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s4 posteriormente)
+	j SETUP_TARGET		
 	
 # Inicializa os dados do alien a ser movimentado (inky) 
 
@@ -1095,24 +1099,35 @@ DIR_INKY:
 	
 SETUP_FRIGHTENED_INKY:
 
-	la a6, InimigoAssustado	# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
+	la t0, CONTADOR_ASSUSTADO	# carrega o valor de "CONTADOR_ASSUSTADO" no registrador t0	
+	lw t1, 0(t0)			# le a word guardada em "CONTADOR_ASSUSTADO" para t1 (t1 = contador do tempo no frightened_mode)
+	
+	li t2, 350			# alterna entre azul e branco
+	blt t1, t2, INKY_F_NORMAL	#se for menor que 150, continua no print normal frightened mode
+	j INKY_F_ALTERNADO
+	
+INKY_F_NORMAL:
+
+	la a6, InimigoAssustado		# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
+	mv t6, s10			# t6 = movimentaÃ§Ã£o do alien no presente
+	li s10, 51			# volta s4 para 51(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s4 posteriormente)
+	j SETUP_TARGET
+	
+INKY_F_ALTERNADO:	
+	
+	li t1, 2		# t1 = 2
+	rem t0, s0, t1		# t0 = s0%t1
+	beq t0, zero, I_AZUL	# se s0 for par, printa azul
+	la a6, Inimigobranco	# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
 	mv t6, s10		# t6 = movimentaÃ§Ã£o do alien no presente
 	li s10, 51		# volta s4 para 51(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s4 posteriormente)
+	j SETUP_TARGET
 	
+I_AZUL:
+	la a6, InimigoAssustado		# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
+	mv t6, s10			# t6 = movimentaÃ§Ã£o do alien no presente
+	li s10, 51			# volta s4 para 51(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s4 posteriormente)
 	j SETUP_TARGET		
-	
-INKY_DEATH:			# target : dentro da caixa
-	
-	li t4, 0xFF009BC8	# t4 = endereÃ§o do target do Inky(caixa)
-	mv t6, s10		# t6 = movimentaÃ§Ã£o do alien no presente
-	li s10, 68		# volta s10 para 68(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s10 posteriormente)
-	
-	la t0,POS_INKY		# carrega o endereÃ§o de "POS_INKY" no registrador t0
-	lw a4,0(t0)		# le a word guardada em "POS_INKY" para t1 (t1 = posiÃ§Ã£o atual do Inky)
-	
-	la a6, Inimigo3		# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
-	
-	j SETUP_TARGET		# pula para o setup do scatter_mode
 	
 # Inicializa os dados do alien a ser movimentado (clyde)
 	
@@ -1263,21 +1278,34 @@ DIR_CLYDE:
 	
 SETUP_FRIGHTENED_CLYDE:
 
-	la a6, InimigoAssustado	# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
+	la t0, CONTADOR_ASSUSTADO	# carrega o valor de "CONTADOR_ASSUSTADO" no registrador t0	
+	lw t1, 0(t0)			# le a word guardada em "CONTADOR_ASSUSTADO" para t1 (t1 = contador do tempo no frightened_mode)
+	
+	li t2, 350			# alterna entre azul e branco
+	blt t1, t2, CLYDE_F_NORMAL	# se for menor que 150, continua no print normal frightened mode
+	j CLYDE_F_ALTERNADO
+	
+CLYDE_F_NORMAL:
+
+	la a6, InimigoAssustado		# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
+	mv t6, s11			# t6 = movimentaÃ§Ã£o do alien no presente
+	li s11, 51			# volta s4 para 51(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s4 posteriormente)
+	j SETUP_TARGET
+	
+CLYDE_F_ALTERNADO:	
+	
+	li t1, 2		# t1 = 2
+	rem t0, s0, t1		# t0 = s0%t1
+	beq t0, zero, C_AZUL	# se s0 for par, printa azul
+	la a6, Inimigobranco	# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
 	mv t6, s11		# t6 = movimentaÃ§Ã£o do alien no presente
 	li s11, 51		# volta s4 para 51(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s4 posteriormente)
 	j SETUP_TARGET
 	
-CLYDE_DEATH:			# target: dentro da caixa
-
-	li t4, 0xFF009BC8	# t4 = endereÃ§o do target do Clyde(caixa)
-	mv t6, s11		# t6 = movimentaÃ§Ã£o do alien no presente
-	li s11, 68		# volta s11 para 68(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s11 posteriormente)
-	
-	la t0,POS_CLYDE		# carrega o endereÃ§o de "POS_CLYDE" no registrador t0
-	lw a4,0(t0)		# le a word guardada em "POS_CLYDE" para t1 (t1 = posiÃ§Ã£o atual do Clyde)
-	
-	la a6, Inimigo4		# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
+C_AZUL:
+	la a6, InimigoAssustado		# a6 = label da imagem a ser impressa (parametro da funÃ§Ã£o de movimentaÃ§Ã£o)
+	mv t6, s11			# t6 = movimentaÃ§Ã£o do alien no presente
+	li s11, 51			# volta s4 para 51(a movimentaÃ§Ã£o jÃ¡ esta guardada em t6 e o calculo irÃ¡ adicionar em s4 posteriormente)
 	
 # Inicializa os dados para o scatter mode, no qual sera calculado o caminho mais curto ate o target (|a0 - t4| + |a1 - t5|) = (|x_alien - x_target|) + (|y_alien - y_target|)
 
