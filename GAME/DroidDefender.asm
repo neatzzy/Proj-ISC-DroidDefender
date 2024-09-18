@@ -12,7 +12,7 @@
 #			 Earth's Last Sentinel				#
 #########################################################################
 
-.include "../SYSTEM/MACROSv24.s" 		# permite a utilizaÃ§Ã£o dos ecalls "1xx"
+.include "../System/MACROSv24.s" 		# permite a utilizaÃ§Ã£o dos ecalls "1xx"
 	
 .data			
 
@@ -4896,4 +4896,4 @@ SETUP_MAIN_2:
 	
 .data 
 
-.include "../SYSTEM/SYSTEMv24.s"		# permite a utilizaÃ§Ã£o dos ecalls "1xx
+.include "../System/SYSTEMv24.s"		# permite a utilizaÃ§Ã£o dos ecalls "1xx
