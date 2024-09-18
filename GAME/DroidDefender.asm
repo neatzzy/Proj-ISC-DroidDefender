@@ -12,7 +12,7 @@
 #			 Earth's Last Sentinel				#
 #########################################################################
 
-.include "../System/MACROSv24.s" 		# permite a utilizaÃ§Ã£o dos ecalls "1xx"
+.include "../SYSTEM/MACROSv24.s" 		# permite a utilizaÃ§Ã£o dos ecalls "1xx"
 	
 .data			
 
@@ -30,8 +30,8 @@ NOTAS2: 42, 923, 49, 923, 42, 923, 49, 923, 44, 923, 52, 923, 45, 923, 49, 923, 
 
 # Dados diversos (strings para HUD, posiÃ§Ãµes dos personagens no bitmap display, etc)
 
-STR: .string "PONTOS: "
-STR2: .string "VIDAS: "
+STR: .string "SCORE: "
+STR2: .string "HS: "
 STR3: .string "+200"
 STR4: .string "    "
 
@@ -44,6 +44,11 @@ POS_CLYDE: .word 0xFF009BD8	# coordenada inicial do alien laranja (clyde)
 CONTADOR_ASSUSTADO: .word -1
 
 PONTOS: .word 0
+HIGH_SCORE: .word 0
+
+ARQUIVO: .asciz "highscore.bin"
+
+ZERO_WORD: .word 0x00000000
 
 # inclusÃ£o das imagens 
 
@@ -58,6 +63,7 @@ PONTOS: .word 0
 .include "../DATA/Robozinho2.data"
 .include "../DATA/Robozinho1forte.data"
 .include "../DATA/Robozinho2forte.data"
+.include "../DATA/Robozinhomorto.data"
 .include "../DATA/Robozinho1preto.data"
 .include "../DATA/Inimigo1.data"
 .include "../DATA/Inimigo2.data"
@@ -69,9 +75,56 @@ PONTOS: .word 0
 
 .text
 
-#Carrega o menu principal
+
+# Tenta abrir o arquivo "highscore.bin" para leitura se ele existir
+
+	li a7,1024
+	la a0,ARQUIVO
+	li a1,0
+	ecall
+	mv t0,a0
 	
-	li s1,0xFF000000	# s1 = endereco inicial da Memoria VGA - Frame 0
+	blt a0,zero,CRIAR_ARQUIVO	# se o arquivo nao existir (file descriptor < 0)
+	
+	mv t0,a0		# salva o valor de a0 em t0 (a0 = inicio do arquivo)
+	
+	li a7,63		# numero do syscall de leitura
+	mv a0,t0
+	la a1, HIGH_SCORE	# label de armazenamento do highscore
+	li a2, 4 		# numero de bytes a ler (4 bytes = word)
+	ecall
+	
+	li a7,57		# fclose
+	mv a0,t0
+	ecall
+	
+	j START
+	
+CRIAR_ARQUIVO:	
+
+	li a7,1024
+	la a0,ARQUIVO
+	li a1,1
+	ecall
+	mv t0,a0
+		
+	mv t0,a0		# salva o valor de a0 em t0 (a0 = inicio do arquivo)
+	
+# Inicializa o arquivo com 0x00000000
+
+	li a7,64 		# numero do syscall de escrita 
+	mv a0,t0
+	la a1, ZERO_WORD	# a1 = endereço da word carregada com 0x00000000
+	li a2, 4 		# numero de bytes a escrever
+	ecall
+	
+	li a7,57		# fclose
+	mv a0,t0
+	ecall
+
+# Carrega o menu principal
+	
+START:	li s1,0xFF000000	# s1 = endereco inicial da Memoria VGA - Frame 0
 	li s2,0xFF012C00	# s2 = endereco final da Memoria VGA - Frame 0
 	la s0,menuprincipal	# s0 = endereÃƒÂ§o dos dados do mapa 1
 	addi s0,s0,8		# s0 = endereÃƒÂ§o do primeiro pixel da imagem (depois das informaÃƒÂ§ÃƒÂµes de nlin ncol)
@@ -139,7 +192,65 @@ LOOP:   li t2,0xFF200000	# carrega o endereÃƒÂ§o de controle do KDMMIO ("tec
 	
 # Carrega a imagem1 (mapa1) no frame 0
 	
-IMG1:	la t4, mapa1		# t4 cerrega endereÃƒÂ§o do mapa a fim de comparaÃƒÂ§ÃƒÂ£o
+IMG1:	li a0,100		# a3 = 50 (volume da nota)
+	li a7,32		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,73		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,82		# a2 = 32 (timbre "guitar harmonic")
+	li a3,50		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,85		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,82		# a2 = 32 (timbre "guitar harmonic")
+	li a3,50		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,100		# a3 = 50 (volume da nota)
+	li a7,32		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,71		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,82		# a2 = 32 (timbre "guitar harmonic")
+	li a3,50		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,83		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,82		# a2 = 32 (timbre "guitar harmonic")
+	li a3,50		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,100		# a3 = 50 (volume da nota)
+	li a7,32		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,73		# a0 = 76 (carrega mi para a0)
+	li a1,400		# a1 = 100 (nota de duração de 100 ms)
+	li a2,82		# a2 = 32 (timbre "guitar harmonic")
+	li a3,50		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,85		# a0 = 76 (carrega mi para a0)
+	li a1,400		# a1 = 100 (nota de duração de 100 ms)
+	li a2,82		# a2 = 32 (timbre "guitar harmonic")
+	li a3,50		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,400		# a3 = 50 (volume da nota)
+	li a7,32		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+
+	la t4, mapa1		# t4 cerrega endereÃƒÂ§o do mapa a fim de comparaÃƒÂ§ÃƒÂ£o
 	li s1,0xFF000000	# s1 = endereco inicial da Memoria VGA - Frame 0
 	li s2,0xFF012C00	# s2 = endereco final da Memoria VGA - Frame 0
 	la s0,mapa1		# s0 = endereÃƒÂ§o dos dados do mapa 1
@@ -253,6 +364,33 @@ IMG12:	li s1,0xFF1087D8	# s1 = endereco inicial da primeira linha do alien 4 - F
 	mv t3, s0		# t3 = endereÃƒÂ§o inicial armazenado a fins de comparaÃƒÂ§ÃƒÂ£o
 	j PRINT16_Q
 	
+# Carrega a imagem2 (Robozinho1 - imagem 16x16) no frame 0
+
+IMG13:	li s1,0xFF011584	# s1 = endereco inicial da primeira linha do Robozinho - Frame 0
+	li s2,0xFF011594	# s2 = endereco final da primeira linha do Robozinho (inicial +16) - Frame 0
+	la s0,Robozinho1	# s0 = endereÃƒÂ§o dos dados do Robozinho1 (boca fechada)
+	li t3,-1
+	addi s0,s0,8		# s0 = endereÃƒÂ§o do primeiro pixel da imagem (depois das informaÃƒÂ§ÃƒÂµes de nlin ncol)
+	j PRINT16
+	
+# Carrega a imagem2 (Robozinho1 - imagem 16x16) no frame 0
+
+IMG14:	li s1,0xFF011598	# s1 = endereco inicial da primeira linha do Robozinho - Frame 0
+	li s2,0xFF0115A8	# s2 = endereco final da primeira linha do Robozinho (inicial +16) - Frame 0
+	la s0,Robozinho1	# s0 = endereÃƒÂ§o dos dados do Robozinho1 (boca fechada)
+	li t3,-2
+	addi s0,s0,8		# s0 = endereÃƒÂ§o do primeiro pixel da imagem (depois das informaÃƒÂ§ÃƒÂµes de nlin ncol)
+	j PRINT16
+
+# Carrega a imagem2 (Robozinho1 - imagem 16x16) no frame 0
+		
+IMG15:	li s1,0xFF0115AC	# s1 = endereco inicial da primeira linha do Robozinho - Frame 0
+	li s2,0xFF0115BC	# s2 = endereco final da primeira linha do Robozinho (inicial +16) - Frame 0
+	la s0,Robozinho1	# s0 = endereÃƒÂ§o dos dados do Robozinho1 (boca fechada)
+	li t3,-3
+	addi s0,s0,8		# s0 = endereÃƒÂ§o do primeiro pixel da imagem (depois das informaÃƒÂ§ÃƒÂµes de nlin ncol)
+	j PRINT16
+	
 # Compara os endereÃƒÂ§os para ver qual a proxima imagem a ser printada
 
 IMAGEM: beq t3, t4, IMG2 	# se t3 contiver o endereÃƒÂ§o "mapa1", vÃƒÂ¡ para IMG2 (imprime a imagem2)
@@ -288,6 +426,15 @@ IMAGEM: beq t3, t4, IMG2 	# se t3 contiver o endereÃƒÂ§o "mapa1", vÃƒÂ¡ 
 	beq t3, t4, IMG12	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)
 	
 	li t4, 0x73737373
+	beq t3, t4, IMG13	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, -1
+	beq t3, t4, IMG14	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, -2
+	beq t3, t4, IMG15	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, -3
 	beq t3, t4, SETUP_MAIN	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)
 	
 # Loop que imprime imagens 16x16
@@ -1145,8 +1292,7 @@ CLYDE_DEATH:			# target: dentro da caixa
 	
 SETUP_TARGET:
 
-	li t5, 17		# t5 = 17
-	rem t6, t6, t5		# t6 = resto de t6 por 17(t6 guardava a movimentaÃ§Ã£o do alien antes de resetar para 17/34/51 e agora estÃ¡ setado para 0,1,2 ou 3)
+	
 
 	li t1, 0xFF000000	# t1 = endereÃ§o base do Bitmap Display 
 	li t2, 320		# t2 = numero de colunas da tela
@@ -1177,35 +1323,62 @@ SETUP_TARGET:
 	
 	addi a0, a0, -4		# volta a0 para a posiÃ§Ã£o original
 	
+	
+	li t5, 21
+	blt t6, t5, VERIF_MOV2_X 	# se a2(Sx) < 21, estÃ¡ no scatter mode(nâo tira ele da caixa)
+	li t5, 38
+	blt t6, t5, CONT_TARGET	 	# se a2(Sx) < 38, estÃ¡ no chase mode(tira ele da caixa)
+
+	li t4, 116			# verifica se o alien estÃ¡ dentro da caixa(caso esteja, ele nao pode ir para baixo)
+	ble a1, t4, VERIF_MOV1_XF	# se ele estiver acima d alinha da caixa, vamos ver se ele está abaixo da outra linha da caixa(SERVE PRA TIRAR DA CAIXA)
+	jal VERIF_MOV2_F		# se não, pula pra segunda verificação	
+	
+VERIF_MOV1_XF:
+	li t4, 96			# verifica se o alien estÃ¡ dentro da caixa(caso esteja, ele nao pode ir para baixo)
+	bgt a1, t4, VERIF_MOV1_F	# se stiver, verifica se está entre as colunas	
+	jal VERIF_MOV2_F		# se não, pula pra segunda verificação
+
+VERIF_MOV1_F:
+	li t4, 216			# borda direita da caixa(200 + 16)
+	li t5, 184			# borda esquerda da caixa(200 - 16)
+	bge a0, t4, VERIF_MOV2_F	# se a0 estÃ¡ na esquerda da borda esquerda, nao esta dentro da caixa
+	blt a0, t5, VERIF_MOV2_F	# se a0 estÃ¡ na direita da borda direita, nao esta dentro da caixa
+	
+	li t2, 560			# carrega em t2 um valor grande para ele nao ir para baixo
+	jal VERIF_MOV			# pula para verificar o movimento(nâo pode inverter!)
+
+VERIF_MOV2_F:
+
 	la t5, CONTADOR_ASSUSTADO	# le o CONTADOR_ASSUSTADO
-	lw t4, 0(t5)		# carrega em t4 o valor do CONTADOR_ASSUSTADO 
-	
-	li t5, 0		# t5 = 0(primeiro loop do blinky no frightened mode)
-	bge t4, t5, VERIF_MODE	# se ele estiver no modo assustado, verifica se ele estÃ¡ em um dos primeiros ticks do fantasma no modo assustado
-	j CONT_TARGET
-	
-VERIF_MODE:
-	li t5, 4		# te = 4(proximo tick do primeiro alien)
-	blt t4, t5, MENOR	# se sim, entÃ£o ele pode virar 180 graus
+	lw t4, 0(t5)			# carrega em t4 o valor do CONTADOR_ASSUSTADO
+
+	li t5, 4			# te = 4(proximo tick do primeiro alien)
+	blt t4, t5, MENOR		# se ele está em um dos primeiros ticks, além de não estar dentro da caixa, pode inverter, se não, continua normalmente o calculo do target
+	jal VERIF_MOV2_X
 	
 CONT_TARGET:
 	
-#	li t4, 116		# verifica se o alien estÃ¡ dentro da caixa(caso esteja, ele nao pode ir para baixo)
-#	beq a1, t4, VERIF_MOV1  # se ele estiver na linha da caixa, vamos ver se ele estÃ¡ entre as colunas
+	li t4, 116			# verifica se o alien estÃ¡ dentro da caixa(caso esteja, ele nao pode ir para baixo)
+	ble a1, t4, VERIF_MOV1_X	# se ele estiver acima d alinha da caixa, vamos ver se ele está abaixo da outra linha da caixa(SERVE PRA TIRAR DA CAIXA)
+	jal VERIF_MOV2_X		# se não, pula pra segunda verificação	
 	
-	li t4, 96		#verifica se o alien estÃ¡ logo em cima da caixa(caso esteja, ele nao pode ir para cima)
-	beq a1, t4, VERIF_MOV2  # se ele estiver na linha da caixa, vamos ver se ele estÃ¡ entre as colunas
-		
+VERIF_MOV1_X:
+	li t4, 96			# verifica se o alien estÃ¡ dentro da caixa(caso esteja, ele nao pode ir para baixo)
+	bgt a1, t4, VERIF_MOV1		# se stiver, verifica se está entre as colunas
+
+VERIF_MOV2_X:	
+	li t4, 96			#verifica se o alien estÃ¡ logo em cima da caixa(caso esteja, ele nao pode ir para cima nem para baixo)
+	beq a1, t4, VERIF_MOV2  	# se ele estiver na linha da caixa, vamos ver se ele estÃ¡ entre as colunas
 	jal VERIF_MOV
+
+VERIF_MOV1:
+	li t4, 216		# borda direita da caixa(200 + 16)
+	li t5, 184		# borda esquerda da caixa(200 - 16)
+	bge a0, t4, VERIF_MOV	# se a0 estÃ¡ na esquerda da borda esquerda, nao esta dentro da caixa
+	blt a0, t5, VERIF_MOV	# se a0 estÃ¡ na direita da borda direita, nao esta dentro da caixa
 	
-#VERIF_MOV1:
-#	li t4, 216		# borda direita da caixa(200 + 16)
-#	li t5, 184		# borda esquerda da caixa(200 - 16)
-#	bge a0, t4, VERIF_MOV	# se a0 estÃ¡ na esquerda da borda esquerda, nao esta dentro da caixa
-#	blt a0, t5, VERIF_MOV	# se a0 estÃ¡ na direita da borda direita, nao esta dentro da caixa
-	
-#	li t2, 560		# carrega em t2 um valor grande para ele nao ir para baixo
-#	jal VERIF_MOV		# pula para verificar o movimento
+	li t2, 560		# carrega em t2 um valor grande para ele nao ir para baixo
+	jal VERIF_MOV		# pula para verificar o movimento
 	
 VERIF_MOV2:
 	li t4, 216		# borda direita da caixa(200 + 16)
@@ -1217,6 +1390,9 @@ VERIF_MOV2:
 	li t2, 560		# carrega em t2 um valor grande para ele nao ir para baixo
 	
 VERIF_MOV:
+
+	li t5, 17		# t5 = 17
+	rem t6, t6, t5		# t6 = resto de t6 por 17(t6 guardava a movimentaÃ§Ã£o do alien antes de resetar para 17/34/51 e agora estÃ¡ setado para 0,1,2 ou 3)
 	
 	li t4, 0		# t4 = 0 significa que o alien estÃ¡ andando para cima		
 	beq t6, t4, N_BAIXO	# logo ele nÃ£o pode ir pra baixo
@@ -1238,7 +1414,7 @@ N_CIMA:
 	j MENOR			# pula para MENOR (verifica o menor entre t0, t1, t2 e t3)
 N_ESQUERDA:
 	li t1, 560 		# carrega em t1 um valor grand epara ele nao ir para a esquerda
-	j MENOR			# pula para MENOR (verifica o menor entre t0, t1, t2 e t3)
+	j MENOR			# pula para MENOR (verifica o menor entre t0, t1, t2 e t3
 	
 # Calcula a distÃ¢ncia de cada posiÃ§Ã£o relativa do alien atÃ© o target
 
@@ -1738,7 +1914,7 @@ VER_ALIEN_2:				# se não, ve qual o alien e respawna ele
 
 	li a7,104		# carrega em a7 o serviÃ§o 101 do ecall (print integer on bitmap display)
 	la a0,STR3		# carrega em a0 o valor do inteiro a ser printado (s1 = pontuaÃ§Ã£o atual do jogador)
-	li a1,60		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 60)
+	li a1,56		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 60)
         li a2,11		# carrega em a1 a linha a partir da qual o inteiro vai ser printado (linha 2)
 	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
 	li a4,0			# carrega em a4 o frame onde o inteiro deve ser printado (Frame 0 da memoria VGA)
@@ -1762,6 +1938,14 @@ VER_ALIEN_2:				# se não, ve qual o alien e respawna ele
 	li a7,32		# a7 = 31 (carrega em a7 o ecall "MidiOut")
 	ecall			# realiza o ecall
 	
+	li a7,104		# carrega em a7 o serviÃ§o 101 do ecall (print integer on bitmap display)
+	la a0,STR4		# carrega em a0 o valor do inteiro a ser printado (s1 = pontuaÃ§Ã£o atual do jogador)
+	li a1,56		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 60)
+        li a2,11		# carrega em a1 a linha a partir da qual o inteiro vai ser printado (linha 2)
+	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
+	li a4,0			# carrega em a4 o frame onde o inteiro deve ser printado (Frame 0 da memoria VGA)
+	ecall			# realiza o ecall
+	
 	li a0,59		# a0 = 76 (carrega mi para a0)
 	li a1,200		# a1 = 100 (nota de duração de 100 ms)
 	li a2,33		# a2 = 32 (timbre "guitar harmonic")
@@ -1778,6 +1962,14 @@ VER_ALIEN_2:				# se não, ve qual o alien e respawna ele
 	
 	li a0,100		# a3 = 50 (volume da nota)
 	li a7,32		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a7,104		# carrega em a7 o serviÃ§o 101 do ecall (print integer on bitmap display)
+	la a0,STR3		# carrega em a0 o valor do inteiro a ser printado (s1 = pontuaÃ§Ã£o atual do jogador)
+	li a1,56		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 60)
+        li a2,11		# carrega em a1 a linha a partir da qual o inteiro vai ser printado (linha 2)
+	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
+	li a4,0			# carrega em a4 o frame onde o inteiro deve ser printado (Frame 0 da memoria VGA)
 	ecall			# realiza o ecall
 	
 	li a0,61		# a0 = 76 (carrega mi para a0)
@@ -1800,7 +1992,7 @@ VER_ALIEN_2:				# se não, ve qual o alien e respawna ele
 	
 	li a7,104		# carrega em a7 o serviÃ§o 101 do ecall (print integer on bitmap display)
 	la a0,STR4		# carrega em a0 o valor do inteiro a ser printado (s1 = pontuaÃ§Ã£o atual do jogador)
-	li a1,60		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 60)
+	li a1,56		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 60)
         li a2,11		# carrega em a1 a linha a partir da qual o inteiro vai ser printado (linha 2)
 	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
 	li a4,0			# carrega em a4 o frame onde o inteiro deve ser printado (Frame 0 da memoria VGA)
@@ -1963,12 +2155,41 @@ ENTER2_A_COL_MORTE:
 FIM_MORTE:
 	jal ROBOZINHO 		# vai para a movimentação do robozinho
 
-VERFASE:li t0,1
-	beq s6,t0,FASE1
+VERFASE:li t2,5120
+	la t0,POS_ROBOZINHO	# carrega o endereÃ§o de "POS_ROBOZINHO" no registrador t0
+	lw t1,0(t0)		# le a word guardada em "POS_ROBOZINHO" para t1 (t1 = posiÃ§Ã£o atual do Robozinho)
+	sub t1,t1,t2		# volta t1 16 linhas e vai 4 pixels pra frente (pixel inicial + 4) 
+	mv t2,t1 		# t2 = t1
+	addi t2,t2,16		# t2 = t2 + 16 (pixel final da primeira linha + 4)
+	
+	la t3,Robozinhomorto	# t3 = endereÃ§o dos dados do Robozinho1 (boca fechada)
+	addi t3,t3,8		# t3 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
+
+	li t5,0
+	li t6,16		# reinicia contador para 16 quebras de linha	
+	
+LOOP_MRT: 	
+	beq t1,t2,ENTER_MRT	# se t1 atingir o fim da linha de pixels, quebre linha
+	lw t0,0(t3)		# le uma word do endereÃ§o t3 (le 4 pixels da imagem)
+	sw t0,0(t1)		# escreve a word na memÃ³ria VGA no endereÃ§o t1 (desenha 4 pixels na tela do Bitmap Display)
+	addi t1,t1,4		# soma 4 ao endereÃ§o t1
+	addi t3,t3,4		# soma 4 ao endereÃ§o t3
+	j LOOP_MRT			# volta a verificar a condiÃ§ao do loop
+	
+ENTER_MRT:	
+	addi t1,t1,304		# t1 pula para o pixel inicial da linha de baixo
+	addi t2,t2,320		# t2 pula para o pixel final da linha de baixo
+	addi t5,t5,1            # atualiza o contador de quebras de linha
+	beq t5,t6,AFTER		# termine o carregamento da imagem se 16 quebras de linha ocorrerem
+	j LOOP_MRT			# pula para loop 3
+
+AFTER:	li t0,1
+	beq s6,t0,FASE1C
 	jal zero, RESET_FASE2
 ##################################
 DERROTAC: jal zero, DERROTA
 VITORIAC: jal zero, VITORIA
+FASE1C: jal zero, FASE1
 FASE2C: jal zero, FASE2
 ##################################
 # Parte do codigo que lida com a movimentaÃ§Ã£o do Robozinho
@@ -1976,8 +2197,8 @@ FASE2C: jal zero, FASE2
 ROBOZINHO:
 
 	li a7,104		# carrega em a7 o serviÃ§o 104 do ecall (print string on bitmap display)
-	la a0,STR		# carrega em a0 o endereÃ§o da string a ser printada (STR: "PONTOS: ")
-	li a1,0			# carrega em a1 a coluna a partir da qual a string vai ser printada (coluna 0)
+	la a0,STR		# carrega em a0 o endereÃ§o da string a ser printada (STR: "SCORE: ")
+	li a1,3			# carrega em a1 a coluna a partir da qual a string vai ser printada (coluna 0)
        	li a2,2			# carrega em a2 a linha a partir da qual a string vai ser printada (linha 2)
 	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
 	li a4,0 		# carrega em a4 o frame onde a string deve ser printada (Frame 0 da memoria VGA)
@@ -1988,29 +2209,43 @@ ROBOZINHO:
 	
 	li a7,101		# carrega em a7 o serviÃ§o 101 do ecall (print integer on bitmap display)
 	mv a0,t0		# carrega em a0 o valor do inteiro a ser printado (s1 = pontuaÃ§Ã£o atual do jogador)
-	li a1,60		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 60)
+	li a1,55		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 60)
         li a2,2			# carrega em a1 a linha a partir da qual o inteiro vai ser printado (linha 2)
 	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
 	li a4,0			# carrega em a4 o frame onde o inteiro deve ser printado (Frame 0 da memoria VGA)
 	ecall			# realiza o ecall
 	
 	li a7,104		# carrega em a7 o serviÃ§o 104 do ecall (print string on bitmap display)
-	la a0,STR2		# carrega em a0 o endereÃ§o da string a ser printada (STR2: "VIDAS: ")
-	li a1,1			# carrega em a1 a coluna a partir da qual a string vai ser printada (coluna 1)
-       	li a2,231		# carrega em a2 a linha a partir da qual a string vai ser printada (linha 231)
+	la a0,STR2		# carrega em a0 o endereÃ§o da string a ser printada (STR: "HS: ")
+	li a1,4			# carrega em a1 a coluna a partir da qual a string vai ser printada (coluna 0)
+       	li a2,210		# carrega em a2 a linha a partir da qual a string vai ser printada (linha 2)
 	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
 	li a4,0 		# carrega em a4 o frame onde a string deve ser printada (Frame 0 da memoria VGA)
 	ecall			# realiza o ecall
 	
+	la t1, HIGH_SCORE
+	lw t2, 0(t1)
+	
+	bgt t0,t2,NEW_HS
+	
 	li a7,101		# carrega em a7 o serviÃ§o 101 do ecall (print integer on bitmap display)
-	mv a0,s2		# carrega em a0 o valor do inteiro a ser printado (s2 = vidas restantes do jogador)
-	li a1,52		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 52)
-        li a2,231		# carrega em a1 a linha a partir da qual o inteiro vai ser printado (linha 231)
+	mv a0,t2		# carrega em a0 o valor do inteiro a ser printado (s1 = pontuaçao maxima)
+	li a1,32		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 60)
+        li a2,210		# carrega em a1 a linha a partir da qual o inteiro vai ser printado (linha 2)
+	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
+	li a4,0			# carrega em a4 o frame onde o inteiro deve ser printado (Frame 0 da memoria VGA)
+	ecall			# realiza o ecall
+	j DER
+	
+NEW_HS:	li a7,101		# carrega em a7 o serviÃ§o 101 do ecall (print integer on bitmap display)
+	mv a0,t0		# carrega em a0 o valor do inteiro a ser printado (s1 = pontuaçao maxima)
+	li a1,32		# carrega em a1 a coluna a partir da qual o inteiro vai ser printado (coluna 60)
+        li a2,210		# carrega em a1 a linha a partir da qual o inteiro vai ser printado (linha 2)
 	li a3,0x00FF		# carrega em a3 a cor de fundo (0x00 - preto) e a cor dos caracteres (0xFF - branco)
 	li a4,0			# carrega em a4 o frame onde o inteiro deve ser printado (Frame 0 da memoria VGA)
 	ecall			# realiza o ecall
 	
-	beq s2,zero,DERROTAC
+DER:	beq s2,zero,DERROTAC
 	
 	li t0,1
 	beq s6,t0,VERVIC1
@@ -3077,23 +3312,237 @@ COL_CLYDE:
 	
 
 VERFASE_B:
-	li t0,1
+	li t2,5120
+	la t0,POS_ROBOZINHO	# carrega o endereÃ§o de "POS_ROBOZINHO" no registrador t0
+	lw t1,0(t0)		# le a word guardada em "POS_ROBOZINHO" para t1 (t1 = posiÃ§Ã£o atual do Robozinho)
+	sub t1,t1,t2		# volta t1 16 linhas e vai 4 pixels pra frente (pixel inicial + 4) 
+	mv t2,t1 		# t2 = t1
+	addi t2,t2,16		# t2 = t2 + 16 (pixel final da primeira linha + 4)
+	
+	la t3,Robozinhomorto	# t3 = endereÃ§o dos dados do Robozinho1 (boca fechada)
+	addi t3,t3,8		# t3 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
+
+	li t5,0
+	li t6,16		# reinicia contador para 16 quebras de linha	
+	
+LOOP_MRTB: 	
+	beq t1,t2,ENTER_MRTB	# se t1 atingir o fim da linha de pixels, quebre linha
+	lw t0,0(t3)		# le uma word do endereÃ§o t3 (le 4 pixels da imagem)
+	sw t0,0(t1)		# escreve a word na memÃ³ria VGA no endereÃ§o t1 (desenha 4 pixels na tela do Bitmap Display)
+	addi t1,t1,4		# soma 4 ao endereÃ§o t1
+	addi t3,t3,4		# soma 4 ao endereÃ§o t3
+	j LOOP_MRTB			# volta a verificar a condiÃ§ao do loop
+	
+ENTER_MRTB:	
+	addi t1,t1,304		# t1 pula para o pixel inicial da linha de baixo
+	addi t2,t2,320		# t2 pula para o pixel final da linha de baixo
+	addi t5,t5,1            # atualiza o contador de quebras de linha
+	beq t5,t6,AFTERB		# termine o carregamento da imagem se 16 quebras de linha ocorrerem
+	j LOOP_MRTB			# pula para loop 3
+	
+AFTERB:	li t0,1
 	beq s6,t0,FASE1
 	jal zero, RESET_FASE2
 	
 # Mostra a tela de derrota
 
-DERROTA:li s1,0xFF000000	# s1 = endereco inicial da Memoria VGA - Frame 0
+DERROTA:lw t0, PONTOS
+	lw t1, HIGH_SCORE
+	
+	bgt t0,t1,NEW_HIGH_SCORE_D
+	j MENU_DER
+
+NEW_HIGH_SCORE_D:
+	
+	li a7,1024
+	la a0,ARQUIVO
+	li a1,1
+	ecall
+	mv t0,a0
+	
+	li a7,64
+	mv a0,t0
+	la a1,PONTOS
+	li a2,4
+	ecall
+	
+	li a7,57
+	mv a0,t0
+	ecall
+
+MENU_DER:	
+	li s1,0xFF000000	# s1 = endereco inicial da Memoria VGA - Frame 0
 	li s2,0xFF012C00	# s2 = endereco final da Memoria VGA - Frame 0
 	la s0,telalose		# s0 = endereÃ§o dos dados do mapa 1
 	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
 
-LOOPL: 	beq s1,s2,LOOPLOSE		# se s1 = Ãºltimo endereÃ§o da Memoria VGA, saia do loop
+LOOPL: 	beq s1,s2,LOSESONG		# se s1 = Ãºltimo endereÃ§o da Memoria VGA, saia do loop
 	lw t0,0(s0)		# le uma word do endereÃ§o s0 (le 4 pixels da imagem)
 	sw t0,0(s1)		# escreve a word na memÃ³ria VGA no endereÃ§o s1 (desenha 4 pixels na tela do Bitmap Display)
 	addi s1,s1,4		# soma 4 ao endereÃ§o s1 
 	addi s0,s0,4		# soma 4 ao endereÃ§o s0
 	j LOOPL			# volta a verificar a condiÃ§ao do loop
+	
+LOSESONG:
+	li a0,100
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+   	
+   	li a0,69		# a0 = 76 (carrega mi para a0)
+	li a1,1500		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,64		# a0 = 76 (carrega mi para a0)
+	li a1,1500		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,60		# a0 = 76 (carrega mi para a0)
+	li a1,1500		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,57		# a0 = 76 (carrega mi para a0)
+	li a1,1500		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,52		# a0 = 76 (carrega mi para a0)
+	li a1,1500		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,45		# a0 = 76 (carrega mi para a0)
+	li a1,250		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,200		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,200
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,52		# a0 = 76 (carrega mi para a0)
+	li a1,250		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,200		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,200
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,53		# a0 = 76 (carrega mi para a0)
+	li a1,250		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,200		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,200
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,50		# a0 = 76 (carrega mi para a0)
+	li a1,250		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,200		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,200
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,52		# a0 = 76 (carrega mi para a0)
+	li a1,250		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,200		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,200
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,50		# a0 = 76 (carrega mi para a0)
+	li a1,250		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,200		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,50
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+   	
+   	li a0,52		# a0 = 76 (carrega mi para a0)
+	li a1,250		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,200		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,50
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+   	
+   	li a0,50		# a0 = 76 (carrega mi para a0)
+	li a1,250		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,200		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,50
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+   	
+   	li a0,48		# a0 = 76 (carrega mi para a0)
+	li a1,250		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,200		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,200
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+   	
+   	li a0,47		# a0 = 76 (carrega mi para a0)
+	li a1,250		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,200		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,200
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+   	
+   	li a0,45		# a0 = 76 (carrega mi para a0)
+	li a1,1000		# a1 = 100 (nota de duração de 100 ms)
+	li a2,33		# a2 = 32 (timbre "guitar harmonic")
+	li a3,200		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,200
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
 
 LOOPLOSE:li t2,0xFF200000	# carrega o endereÃ§o de controle do KDMMIO ("teclado")
 	lw t0,0(t2)		# le uma word a partir do endereÃ§o de controle do KDMMIO
@@ -3106,17 +3555,433 @@ CLSL:	li a7, 10
 	
 # Mostra a tela de vitoria
 	
-VITORIA:li s1,0xFF000000	# s1 = endereco inicial da Memoria VGA - Frame 0
+VITORIA:li a0,100
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,62		# a0 = 76 (carrega mi para a0)
+	li a1,125		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,250
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,62		# a0 = 76 (carrega mi para a0)
+	li a1,125		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,250
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,57		# a0 = 76 (carrega mi para a0)
+	li a1,125		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,125
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,59		# a0 = 76 (carrega mi para a0)
+	li a1,125		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,125
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,60		# a0 = 76 (carrega mi para a0)
+	li a1,125		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,125
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,62		# a0 = 76 (carrega mi para a0)
+	li a1,125		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,3000
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+
+	lw t0, PONTOS
+	lw t1, HIGH_SCORE
+	
+	bgt t0,t1,NEW_HIGH_SCORE
+	j MENU_VIC
+
+NEW_HIGH_SCORE:
+	
+	li a7,1024
+	la a0,ARQUIVO
+	li a1,1
+	ecall
+	mv t0,a0
+	
+	li a7,64
+	mv a0,t0
+	la a1,PONTOS
+	li a2,4
+	ecall
+	
+	li a7,57
+	mv a0,t0
+	ecall
+	
+MENU_VIC:li s1,0xFF000000	# s1 = endereco inicial da Memoria VGA - Frame 0
 	li s2,0xFF012C00	# s2 = endereco final da Memoria VGA - Frame 0
 	la s0,telawin		# s0 = endereÃ§o dos dados do mapa 1
 	addi s0,s0,8		# s0 = endereÃ§o do primeiro pixel da imagem (depois das informaÃ§Ãµes de nlin ncol)
 
-LOOPV: 	beq s1,s2,LOOPVIC		# se s1 = Ãºltimo endereÃ§o da Memoria VGA, saia do loop
+LOOPV: 	beq s1,s2,VICSONG		# se s1 = Ãºltimo endereÃ§o da Memoria VGA, saia do loop
 	lw t0,0(s0)		# le uma word do endereÃ§o s0 (le 4 pixels da imagem)
 	sw t0,0(s1)		# escreve a word na memÃ³ria VGA no endereÃ§o s1 (desenha 4 pixels na tela do Bitmap Display)
 	addi s1,s1,4		# soma 4 ao endereÃ§o s1 
 	addi s0,s0,4		# soma 4 ao endereÃ§o s0
 	j LOOPV			# volta a verificar a condiÃ§ao do loop
+	
+VICSONG:li a0,65		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,60		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,57		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,53		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,48		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,41		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,250
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+   	
+   	li a0,67		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,62		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,59		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,55		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,50		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,43		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,80
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+   	
+   	li a0,67		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,62		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,59		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,55		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,50		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,43		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,80
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+   	
+   	li a0,67		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,62		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,59		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,55		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,50		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,43		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,80
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+   	
+   	li a0,67		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,62		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,59		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,55		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,50		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,43		# a0 = 76 (carrega mi para a0)
+	li a1,100		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,250
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+   	
+   	li a0,69		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,64		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,61		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,57		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,52		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,45		# a0 = 76 (carrega mi para a0)
+	li a1,200		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,250
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+   	
+   	li a0,69		# a0 = 76 (carrega mi para a0)
+	li a1,1500		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,64		# a0 = 76 (carrega mi para a0)
+	li a1,1500		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,61		# a0 = 76 (carrega mi para a0)
+	li a1,1750		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,57		# a0 = 76 (carrega mi para a0)
+	li a1,2000		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,52		# a0 = 76 (carrega mi para a0)
+	li a1,2000		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,45		# a0 = 76 (carrega mi para a0)
+	li a1,3000		# a1 = 100 (nota de duração de 100 ms)
+	li a2,32		# a2 = 32 (timbre "guitar harmonic")
+	li a3,100		# a3 = 50 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,125
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
 
 LOOPVIC:li t2,0xFF200000	# carrega o endereÃ§o de controle do KDMMIO ("teclado")
 	lw t0,0(t2)		# le uma word a partir do endereÃ§o de controle do KDMMIO
@@ -3219,8 +4084,41 @@ FASE1:  li s6,1
 	li a3,100		# a3 = 50 (volume da nota)
 	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
 	ecall			# realiza o ecall
+	
+	li a0,750
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,35		# a0 = 40 (carrega mi para a0)
+	li a1,175		# a1 = 100 (nota de duraÃ§Ã£o de 100 ms)
+	li a2,33		# a2 = 33 (timbre "acoustic bass")
+	li a3,200		# a3 = 90 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,175
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,31		# a0 = 40 (carrega mi para a0)
+	li a1,175		# a1 = 100 (nota de duraÃ§Ã£o de 100 ms)
+	li a2,33		# a2 = 33 (timbre "acoustic bass")
+	li a3,200		# a3 = 90 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,175
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,28		# a0 = 40 (carrega mi para a0)
+	li a1,225		# a1 = 100 (nota de duraÃ§Ã£o de 100 ms)
+	li a2,33		# a2 = 33 (timbre "acoustic bass")
+	li a3,200		# a3 = 90 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
 
-	li a0,3000
+	li a0,2000
 	li a7,32           	# define a chamada de syscal para pausa
    	ecall               	# realiza uma pausa de 3 s
    	
@@ -3342,6 +4240,41 @@ IMG12_1:li t5,0xFF1087D8	# t5 = endereco inicial da primeira linha do alien 4 - 
 	mv t3, s0		# t3 = endereÃƒÂ§o inicial armazenado a fins de comparaÃƒÂ§ÃƒÂ£o
 	j PRINT16_Q_1
 	
+# Carrega a imagem2 (Robozinho1 - imagem 16x16) no frame 0
+
+IMG13_1:li t5,0xFF011584	# s1 = endereco inicial da primeira linha do Robozinho - Frame 0
+	li t6,0xFF011594	# s2 = endereco final da primeira linha do Robozinho (inicial +16) - Frame 0
+	la s0,Robozinho1	# s0 = endereÃƒÂ§o dos dados do Robozinho1 (boca fechada)
+	li t3,-1
+	addi s0,s0,8		# s0 = endereÃƒÂ§o do primeiro pixel da imagem (depois das informaÃƒÂ§ÃƒÂµes de nlin ncol)
+	j PRINT16_1
+	
+# Carrega a imagem2 (Robozinho1 - imagem 16x16) no frame 0
+
+IMG14_1:li t0,3
+	li t3,-2
+	blt s2,t0,SKP_LIFE1_1
+
+	li t5,0xFF011598	# s1 = endereco inicial da primeira linha do Robozinho - Frame 0
+	li t6,0xFF0115A8	# s2 = endereco final da primeira linha do Robozinho (inicial +16) - Frame 0
+	la s0,Robozinho1	# s0 = endereÃƒÂ§o dos dados do Robozinho1 (boca fechada)
+	li t3,-2
+	addi s0,s0,8		# s0 = endereÃƒÂ§o do primeiro pixel da imagem (depois das informaÃƒÂ§ÃƒÂµes de nlin ncol)
+	j PRINT16_1
+
+# Carrega a imagem2 (Robozinho1 - imagem 16x16) no frame 0
+		
+IMG15_1:li t0,4
+	li t3,-3
+	blt s2,t0,SKP_LIFE2_1
+	
+	li t5,0xFF0115AC	# s1 = endereco inicial da primeira linha do Robozinho - Frame 0
+	li t6,0xFF0115BC	# s2 = endereco final da primeira linha do Robozinho (inicial +16) - Frame 0
+	la s0,Robozinho1	# s0 = endereÃƒÂ§o dos dados do Robozinho1 (boca fechada)
+	li t3,-3
+	addi s0,s0,8		# s0 = endereÃƒÂ§o do primeiro pixel da imagem (depois das informaÃƒÂ§ÃƒÂµes de nlin ncol)
+	j PRINT16_1
+	
 # Compara os endereÃƒÂ§os para ver qual a proxima imagem a ser printada
 
 IMAGEM_1: 
@@ -3378,7 +4311,18 @@ IMAGEM_1:
 	beq t3, t4, IMG12_1	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)
 	
 	li t4, 0x73737373
-	beq t3, t4, SETUP_MAIN_1	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)	
+	beq t3, t4, IMG13_1	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, -1
+	beq t3, t4, IMG14_1	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)
+	
+SKP_LIFE1_1:	
+	li t4, -2
+	beq t3, t4, IMG15_1	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)
+
+SKP_LIFE2_1:	
+	li t4, -3
+	beq t3, t4, SETUP_MAIN_1	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)
 	
 # Loop que imprime imagens 16x16
 
@@ -3534,6 +4478,10 @@ FASE2:  addi s2,s2,1
 	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
 	ecall			# realiza o ecall
 	
+	li a0,3000
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
 	j SKPSNG		# pula a musica de morte
 
 RESET_FASE2:
@@ -3624,10 +4572,45 @@ RESET_FASE2:
 	li a3,100		# a3 = 50 (volume da nota)
 	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
 	ecall			# realiza o ecall
-
-SKPSNG:	li a0,3000
+	
+	li a0,750
 	li a7,32           	# define a chamada de syscal para pausa
    	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,35		# a0 = 40 (carrega mi para a0)
+	li a1,175		# a1 = 100 (nota de duraÃ§Ã£o de 100 ms)
+	li a2,33		# a2 = 33 (timbre "acoustic bass")
+	li a3,200		# a3 = 90 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,175
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,31		# a0 = 40 (carrega mi para a0)
+	li a1,175		# a1 = 100 (nota de duraÃ§Ã£o de 100 ms)
+	li a2,33		# a2 = 33 (timbre "acoustic bass")
+	li a3,200		# a3 = 90 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+	
+	li a0,175
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+	
+	li a0,28		# a0 = 40 (carrega mi para a0)
+	li a1,225		# a1 = 100 (nota de duraÃ§Ã£o de 100 ms)
+	li a2,33		# a2 = 33 (timbre "acoustic bass")
+	li a3,200		# a3 = 90 (volume da nota)
+	li a7,31		# a7 = 31 (carrega em a7 o ecall "MidiOut")
+	ecall			# realiza o ecall
+
+	li a0,2000
+	li a7,32           	# define a chamada de syscal para pausa
+   	ecall               	# realiza uma pausa de 3 s
+
+SKPSNG:	
    	
 # Carrega a imagem1 (mapa2) no frame 0
 	
@@ -3747,6 +4730,41 @@ IMG12_2:li t5,0xFF1087D8	# t5 = endereco inicial da primeira linha do alien 4 - 
 	mv t3, s0		# t3 = endereÃƒÂ§o inicial armazenado a fins de comparaÃƒÂ§ÃƒÂ£o
 	j PRINT16_Q_2
 	
+# Carrega a imagem2 (Robozinho1 - imagem 16x16) no frame 0
+
+IMG13_2:li t5,0xFF011584	# s1 = endereco inicial da primeira linha do Robozinho - Frame 0
+	li t6,0xFF011594	# s2 = endereco final da primeira linha do Robozinho (inicial +16) - Frame 0
+	la s0,Robozinho1	# s0 = endereÃƒÂ§o dos dados do Robozinho1 (boca fechada)
+	li t3,-1
+	addi s0,s0,8		# s0 = endereÃƒÂ§o do primeiro pixel da imagem (depois das informaÃƒÂ§ÃƒÂµes de nlin ncol)
+	j PRINT16_2
+	
+# Carrega a imagem2 (Robozinho1 - imagem 16x16) no frame 0
+
+IMG14_2:li t0,3
+	li t3,-2
+	blt s2,t0,SKP_LIFE1
+
+	li t5,0xFF011598	# s1 = endereco inicial da primeira linha do Robozinho - Frame 0
+	li t6,0xFF0115A8	# s2 = endereco final da primeira linha do Robozinho (inicial +16) - Frame 0
+	la s0,Robozinho1	# s0 = endereÃƒÂ§o dos dados do Robozinho1 (boca fechada)
+	li t3,-2
+	addi s0,s0,8		# s0 = endereÃƒÂ§o do primeiro pixel da imagem (depois das informaÃƒÂ§ÃƒÂµes de nlin ncol)
+	j PRINT16_2
+
+# Carrega a imagem2 (Robozinho1 - imagem 16x16) no frame 0
+		
+IMG15_2:li t0,4
+	li t3,-3
+	blt s2,t0,SKP_LIFE2
+	
+	li t5,0xFF0115AC	# s1 = endereco inicial da primeira linha do Robozinho - Frame 0
+	li t6,0xFF0115BC	# s2 = endereco final da primeira linha do Robozinho (inicial +16) - Frame 0
+	la s0,Robozinho1	# s0 = endereÃƒÂ§o dos dados do Robozinho1 (boca fechada)
+	li t3,-3
+	addi s0,s0,8		# s0 = endereÃƒÂ§o do primeiro pixel da imagem (depois das informaÃƒÂ§ÃƒÂµes de nlin ncol)
+	j PRINT16_2
+	
 # Compara os endereÃƒÂ§os para ver qual a proxima imagem a ser printada
 
 IMAGEM_2: 
@@ -3783,7 +4801,18 @@ IMAGEM_2:
 	beq t3, t4, IMG12_2	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)
 	
 	li t4, 0x73737373
-	beq t3, t4, SETUP_MAIN_2	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)	
+	beq t3, t4, IMG13_2	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)
+	
+	li t4, -1
+	beq t3, t4, IMG14_2	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)
+	
+SKP_LIFE1:	
+	li t4, -2
+	beq t3, t4, IMG15_2	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)
+
+SKP_LIFE2:	
+	li t4, -3
+	beq t3, t4, SETUP_MAIN_2	# se t3 contiver o endereÃƒÂ§o "Inimigo4", vÃƒÂ¡ para IMG7 (imprime a imagem7)
 	
 # Loop que imprime imagens 16x16
 
@@ -3867,4 +4896,4 @@ SETUP_MAIN_2:
 	
 .data 
 
-.include "../System/SYSTEMv24.s"		# permite a utilizaÃ§Ã£o dos ecalls "1xx
+.include "../SYSTEM/SYSTEMv24.s"		# permite a utilizaÃ§Ã£o dos ecalls "1xx
